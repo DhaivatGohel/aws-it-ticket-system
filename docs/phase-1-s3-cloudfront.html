@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Phase 1: S3 + CloudFront — AWS IT Ticket Triage System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2128;
+    --border: #2a2d35;
+    --text: #e8e9eb;
+    --muted: #7a7f8a;
+    --accent: #4a9eff;
+    --accent2: #f0c060;
+    --green: #3ecf6e;
+    --red: #ff6b6b;
+    --code-bg: #12141a;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: 17px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(14,15,17,0.92);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+
+  .site-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    text-decoration: none;
+  }
+
+  .header-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 4px;
+  }
+
+  .hero {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 5rem 2rem 3rem;
+  }
+
+  .phase-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .phase-tag::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--accent2);
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    color: #f0f1f3;
+  }
+
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .hero-desc {
+    font-size: 19px;
+    color: #9da3b0;
+    line-height: 1.7;
+    border-left: 2px solid var(--accent);
+    padding-left: 1.25rem;
+    font-style: italic;
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+  }
+
+  .services-strip {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 2rem 3rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .svc-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(74,158,255,0.08);
+    border: 1px solid rgba(74,158,255,0.2);
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+  }
+
+  .divider {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    border-top: 1px solid var(--border);
+    margin-bottom: 3.5rem;
+  }
+
+  .body {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+  }
+
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.65rem;
+    color: #f0f1f3;
+    margin: 3.5rem 0 1rem;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    color: var(--accent2);
+    margin: 2.5rem 0 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 12px;
+  }
+
+  p { margin-bottom: 1.25rem; color: #9da3b0; }
+  p strong { color: var(--text); font-weight: 500; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem 1.75rem;
+    margin: 2rem 0;
+  }
+
+  .step-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .step-title {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+
+  .step p { margin-bottom: 0.75rem; }
+  .step p:last-child { margin-bottom: 0; }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    overflow-x: auto;
+    margin: 1.25rem 0;
+    font-size: 13.5px;
+  }
+
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #c9d1e0;
+    font-size: 13.5px;
+  }
+
+  p code, li code {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #b8c5d8;
+  }
+
+  .kw  { color: #79b8ff; }
+  .str { color: #9ecbff; }
+  .cm  { color: #586069; font-style: italic; }
+  .val { color: var(--green); }
+  .cmd { color: var(--accent2); }
+  .key { color: #e2a4ff; }
+
+  .callout {
+    display: flex;
+    gap: 1rem;
+    background: rgba(74,158,255,0.06);
+    border: 1px solid rgba(74,158,255,0.18);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout.warn {
+    background: rgba(240,192,96,0.06);
+    border-color: rgba(240,192,96,0.2);
+  }
+
+  .callout.success {
+    background: rgba(62,207,110,0.06);
+    border-color: rgba(62,207,110,0.2);
+  }
+
+  .callout.danger {
+    background: rgba(255,107,107,0.06);
+    border-color: rgba(255,107,107,0.2);
+  }
+
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { font-size: 14.5px; color: #8d95a5; line-height: 1.6; }
+  .callout-body strong { color: var(--text); }
+  .callout-body p { margin-bottom: 0.4rem; color: #8d95a5; }
+  .callout-body p:last-child { margin-bottom: 0; }
+
+  /* Architecture diagram */
+  .arch {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .arch-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    row-gap: 1rem;
+  }
+
+  .arch-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .arch-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .arch-box.highlight {
+    border-color: rgba(74,158,255,0.4);
+    background: rgba(74,158,255,0.08);
+    color: var(--accent);
+  }
+
+  .arch-sub {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    text-align: center;
+  }
+
+  .arch-arrow {
+    color: var(--muted);
+    padding: 0 10px;
+    font-size: 16px;
+    padding-bottom: 18px;
+  }
+
+  .checklist {
+    list-style: none;
+    margin: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14.5px;
+    color: #8d95a5;
+  }
+
+  .check {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(62,207,110,0.15);
+    border: 1px solid rgba(62,207,110,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .check svg { width: 10px; height: 10px; stroke: var(--green); fill: none; stroke-width: 2.5; }
+
+  .output {
+    background: #0a0c0f;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    margin: 1.25rem 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: #7dc89a;
+    line-height: 1.6;
+  }
+
+  .insight {
+    background: var(--surface);
+    border-top: 2px solid var(--accent2);
+    border-radius: 0 0 8px 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .insight-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .insight p { color: #8d95a5; font-size: 14.5px; margin-bottom: 0; }
+  .insight p strong { color: var(--text); }
+
+  /* Live badge */
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(62,207,110,0.1);
+    border: 1px solid rgba(62,207,110,0.25);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--green);
+    margin: 1.5rem 0;
+    text-decoration: none;
+  }
+
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .next-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    text-decoration: none;
+    margin-bottom: 2rem;
+    transition: border-color 0.15s;
+  }
+
+  .next-link:hover { border-color: var(--accent); text-decoration: none; }
+
+  /* two col compare */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 1.5rem 0;
+  }
+
+  .compare-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+  }
+
+  .compare-box.bad { border-color: rgba(255,107,107,0.25); }
+  .compare-box.good { border-color: rgba(62,207,110,0.25); }
+
+  .compare-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+
+  .compare-box.bad .compare-label { color: var(--red); }
+  .compare-box.good .compare-label { color: var(--green); }
+  .compare-box p { font-size: 14px; margin-bottom: 0; }
+
+  ul { padding-left: 1.25rem; margin-bottom: 1.25rem; }
+  ul li { color: #9da3b0; margin-bottom: 0.4rem; font-size: 15.5px; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 1rem; }
+    .hero, .body, .services-strip, .divider { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .compare { grid-template-columns: 1fr; }
+    .arch-flow { flex-direction: column; align-items: flex-start; }
+    .arch-arrow { transform: rotate(90deg); padding: 6px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="site-name" href="#">dsgohel / aws-build-log</a>
+  <span class="header-tag">ca-central-1</span>
+</header>
+
+<div class="hero">
+  <div class="phase-tag">Phase 1</div>
+  <h1>S3 + CloudFront: A Live HTTPS Website for Effectively $0</h1>
+  <div class="hero-meta">
+    <span>Dhaivat Gohel</span>
+    <div class="dot"></div>
+    <span>April 2026</span>
+    <div class="dot"></div>
+    <span>7 min read</span>
+  </div>
+  <p class="hero-desc">
+    Before a single Lambda function exists, the frontend is already live — served over HTTPS from AWS edge locations worldwide. This post covers how I set up S3 + CloudFront the right way, with OAC, private bucket access, and zero unnecessary exposure.
+  </p>
+</div>
+
+<div class="services-strip">
+  <span class="svc-badge">S3</span>
+  <span class="svc-badge">CloudFront</span>
+  <span class="svc-badge">OAC</span>
+  <span class="svc-badge">IAM</span>
+  <span class="svc-badge">HTTPS</span>
+  <span class="svc-badge">ca-central-1</span>
+</div>
+
+<div class="divider"></div>
+
+<div class="body">
+
+  <a class="live-badge" href="https://d23mh63awvqncl.cloudfront.net" target="_blank">
+    <div class="live-dot"></div>
+    Live: d23mh63awvqncl.cloudfront.net
+  </a>
+
+  <h2>The architecture</h2>
+  <p>
+    This phase establishes the static hosting layer — the public-facing entry point of the entire system. Two services, one pattern used by virtually every production static site on AWS.
+  </p>
+
+  <div class="arch">
+    <div class="arch-label">Request flow</div>
+    <div class="arch-flow">
+      <div class="arch-node">
+        <div class="arch-box">Browser</div>
+        <div class="arch-sub">HTTPS request</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="arch-box highlight">CloudFront</div>
+        <div class="arch-sub">Edge / CDN / HTTPS</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="arch-box">S3 Bucket</div>
+        <div class="arch-sub">Private origin</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="arch-box">index.html</div>
+        <div class="arch-sub">Static file</div>
+      </div>
+    </div>
+  </div>
+
+  <p>
+    The key word in that diagram is <strong>private</strong>. The S3 bucket is completely locked down — no public access whatsoever. CloudFront is the only entity allowed to read from it, enforced by a bucket policy scoped to the exact distribution ID. This is called <strong>Origin Access Control (OAC)</strong>.
+  </p>
+
+  <h2>Why not just use S3 static website hosting?</h2>
+  <p>
+    S3 has a built-in static website hosting feature. It's tempting — one checkbox and you have a URL. But it has two serious problems for a real deployment:
+  </p>
+
+  <div class="compare">
+    <div class="compare-box bad">
+      <div class="compare-label">S3 static hosting alone</div>
+      <p>HTTP only — no HTTPS. Browsers flag it as insecure. No caching. Every request hits S3 in Montreal. No access control at the edge.</p>
+    </div>
+    <div class="compare-box good">
+      <div class="compare-label">S3 + CloudFront</div>
+      <p>HTTPS by default. Files cached at 400+ edge locations. Bucket stays private. Security headers, WAF, and geo-restriction all available at the edge.</p>
+    </div>
+  </div>
+
+  <p>
+    In 2026, serving a site over HTTP is not acceptable — browsers show security warnings, and search engines penalize it. CloudFront gives you HTTPS with AWS's own certificate at no extra cost.
+  </p>
+
+  <h2>Step 1.1 — Creating the S3 bucket</h2>
+
+  <h3>The command</h3>
+
+  <pre><code><span class="cmd">aws s3api create-bucket</span> \
+  <span class="key">--bucket</span> <span class="val">aws-it-ticket-system-dsgohel</span> \
+  <span class="key">--region</span> <span class="val">ca-central-1</span> \
+  <span class="key">--create-bucket-configuration</span> <span class="val">LocationConstraint=ca-central-1</span></code></pre>
+
+  <div class="step">
+    <div class="step-number">DECISION</div>
+    <div class="step-title">Why does the bucket name include my username?</div>
+    <p>S3 bucket names are <strong>globally unique across every AWS account in the world</strong>. If you create a bucket called <code>my-website</code>, no one else on the planet can use that name. Adding a personal identifier like <code>dsgohel</code> avoids collisions and is standard practice in real environments where bucket names often include the team name, environment, and region.</p>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-icon">⚠</div>
+    <div class="callout-body">
+      <p><strong>Why the LocationConstraint flag?</strong></p>
+      <p>Every AWS region except <code>us-east-1</code> requires the <code>--create-bucket-configuration LocationConstraint</code> flag. This is a legacy quirk — S3 was originally built in us-east-1 and region support was added later. Omitting this flag silently creates your bucket in Virginia, not Montreal. Always include it for non-us-east-1 deployments.</p>
+    </div>
+  </div>
+
+  <h2>Step 1.2 — Blocking all public access</h2>
+
+  <pre><code><span class="cmd">aws s3api put-public-access-block</span> \
+  <span class="key">--bucket</span> <span class="val">aws-it-ticket-system-dsgohel</span> \
+  <span class="key">--public-access-block-configuration</span> \
+  <span class="str">"BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"</span></code></pre>
+
+  <p>
+    All four flags set to <code>true</code>. This is the maximum lockdown — no ACLs, no public policies, no exceptions. The bucket is now invisible to the public internet. The only way anything gets served is through CloudFront, which we control.
+  </p>
+
+  <div class="insight">
+    <div class="insight-label">Security mindset</div>
+    <p>This feels counterintuitive — you're building a public website but locking down the bucket. The distinction is: <strong>the website is public, the storage is not.</strong> CloudFront is the public interface. S3 is the private warehouse. This separation is what lets you add access controls, rate limiting, and security headers at the edge without touching your files.</p>
+  </div>
+
+  <h2>Step 1.3 — CloudFront with Origin Access Control</h2>
+
+  <h3>What is OAC?</h3>
+  <p>
+    Origin Access Control is the mechanism that lets CloudFront authenticate itself to S3. When CloudFront fetches a file from your private bucket, it signs the request with AWS SigV4 — the same signing protocol used for IAM API calls. S3 verifies the signature and only serves the file if it comes from the authorized distribution.
+  </p>
+
+  <div class="callout">
+    <div class="callout-icon">ℹ</div>
+    <div class="callout-body">
+      <p><strong>OAC vs OAI — why it matters for your resume</strong></p>
+      <p>OAI (Origin Access Identity) was the previous way to do this — deprecated by AWS in 2022. Most tutorials still use OAI. Using OAC signals that you're following current AWS documentation, not copying outdated blog posts. Interviewers who know AWS will notice.</p>
+    </div>
+  </div>
+
+  <h3>The distribution config</h3>
+
+  <pre><code>{
+  <span class="key">"CallerReference"</span>: <span class="str">"aws-it-ticket-system-001"</span>,
+  <span class="key">"DefaultRootObject"</span>: <span class="str">"index.html"</span>,
+  <span class="key">"ViewerProtocolPolicy"</span>: <span class="str">"redirect-to-https"</span>,  <span class="cm">// HTTP → HTTPS always</span>
+  <span class="key">"CachePolicyId"</span>: <span class="str">"658327ea-..."</span>,            <span class="cm">// AWS managed CachingOptimized</span>
+  <span class="key">"PriceClass"</span>: <span class="str">"PriceClass_100"</span>,              <span class="cm">// NA + Europe only — lower cost</span>
+  <span class="key">"Compress"</span>: <span class="kw">true</span>,                           <span class="cm">// auto gzip compression</span>
+  <span class="key">"HttpVersion"</span>: <span class="str">"http2"</span>                        <span class="cm">// multiplexed connections</span>
+}</code></pre>
+
+  <div class="step">
+    <div class="step-number">DECISION</div>
+    <div class="step-title">PriceClass_100 — why limit edge locations?</div>
+    <p>CloudFront has three price classes. <code>PriceClass_All</code> uses every edge location globally including Asia-Pacific and South America. <code>PriceClass_100</code> covers North America and Europe only.</p>
+    <p>My users are in Canada. There's no reason to pay for edge nodes in Singapore or São Paulo. <code>PriceClass_100</code> gives full coverage for the relevant geography at lower cost — exactly the kind of cost-aware architecture decision you'd make at a Canadian company.</p>
+  </div>
+
+  <h2>Step 1.4 — Bucket policy scoped to the distribution</h2>
+
+  <pre><code>{
+  <span class="key">"Effect"</span>: <span class="str">"Allow"</span>,
+  <span class="key">"Principal"</span>: { <span class="key">"Service"</span>: <span class="str">"cloudfront.amazonaws.com"</span> },
+  <span class="key">"Action"</span>: <span class="str">"s3:GetObject"</span>,
+  <span class="key">"Resource"</span>: <span class="str">"arn:aws:s3:::aws-it-ticket-system-dsgohel/*"</span>,
+  <span class="key">"Condition"</span>: {
+    <span class="key">"StringEquals"</span>: {
+      <span class="key">"AWS:SourceArn"</span>: <span class="str">"arn:aws:cloudfront::671391594873:distribution/E14LEG5C54VQZA"</span>
+    }
+  }
+}</code></pre>
+
+  <p>
+    This policy is the enforcement layer. It permits <code>s3:GetObject</code> — reading files — but only when the request comes from distribution <code>E14LEG5C54VQZA</code> in account <code>671391594873</code>. Not from any other CloudFront distribution. Not from another AWS account. Not from the public. <strong>Exactly one entity, exactly one permission.</strong> This is least-privilege applied correctly.
+  </p>
+
+  <h2>Verifying the deployment</h2>
+
+  <pre><code><span class="cmd">aws cloudfront get-distribution</span> \
+  <span class="key">--id</span> <span class="val">E14LEG5C54VQZA</span> \
+  <span class="key">--query</span> <span class="str">"Distribution.Status"</span></code></pre>
+
+  <div class="output">"Deployed"</div>
+
+  <p>
+    CloudFront distributions take 5–15 minutes to propagate across edge locations after creation. The status moves from <code>InProgress</code> to <code>Deployed</code> once all edge nodes have the configuration. After that, the site is live globally.
+  </p>
+
+  <div class="callout success">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <p><strong>The site is live at:</strong> <a href="https://d23mh63awvqncl.cloudfront.net">https://d23mh63awvqncl.cloudfront.net</a></p>
+      <p>HTTPS, private S3 origin, OAC enforced, served from North American edge locations — for approximately $0.01/month at this traffic level.</p>
+    </div>
+  </div>
+
+  <h2>A note on the Windows encoding issue</h2>
+  <p>
+    One thing worth documenting: PowerShell's <code>Set-Content</code> writes files with a UTF-8 BOM (Byte Order Mark — the <code>ï»¿</code> prefix) by default. The AWS CLI cannot parse JSON files with a BOM, throwing a cryptic <code>Expected: '='</code> error. The fix is to always write JSON config files in VS Code with <code>UTF-8</code> encoding (not <code>UTF-8 with BOM</code>), or use Git Bash for AWS CLI work on Windows. Git Bash behaves like a Linux terminal and avoids the encoding mismatch entirely.
+  </p>
+  <p>
+    Documenting failures is part of good engineering writing. Anyone hitting this issue will find the answer here.
+  </p>
+
+  <h2>Phase 1 checklist</h2>
+
+  <ul class="checklist">
+    <li>
+      <div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div>
+      S3 bucket created in <code>ca-central-1</code> with globally unique name
+    </li>
+    <li>
+      <div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div>
+      All public access blocked on the bucket
+    </li>
+    <li>
+      <div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div>
+      CloudFront distribution created with OAC (not deprecated OAI)
+    </li>
+    <li>
+      <div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div>
+      Bucket policy scoped to exact distribution ARN
+    </li>
+    <li>
+      <div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div>
+      <code>index.html</code> uploaded and served over HTTPS
+    </li>
+    <li>
+      <div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div>
+      Distribution status confirmed <code>Deployed</code> via CLI
+    </li>
+    <li>
+      <div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div>
+      All config committed to GitHub with conventional commit messages
+    </li>
+  </ul>
+
+  <h2>What's next</h2>
+  <p>
+    Phase 2: the backend. DynamoDB table for ticket storage, a Python Lambda function that auto-categorizes and prioritizes tickets, and an API Gateway endpoint the frontend form will POST to. The serverless core of the system.
+  </p>
+
+  <a class="next-link" href="#">Phase 2: DynamoDB + Lambda + API Gateway →</a>
+
+  <div class="callout">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <p><strong>All code is open source:</strong> <a href="https://github.com/DhaivatGohel/aws-it-ticket-system">github.com/DhaivatGohel/aws-it-ticket-system</a></p>
+      <p>Each phase has its own commit history so you can follow the exact build sequence.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div style="margin-bottom: 0.5rem;">Dhaivat Gohel · AWS IT Ticket Triage System Build Log</div>
+  <div>AWS Certified Cloud Practitioner · SAA candidate · Toronto, ON</div>
+</footer>
+
+</body>
+</html>
