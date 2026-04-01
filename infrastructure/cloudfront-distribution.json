@@ -1,0 +1,28 @@
+{
+  "CallerReference": "aws-it-ticket-system-001",
+  "Origins": {
+    "Quantity": 1,
+    "Items": [{
+      "Id": "s3-aws-it-ticket-system-dsgohel",
+      "DomainName": "aws-it-ticket-system-dsgohel.s3.ca-central-1.amazonaws.com",
+      "S3OriginConfig": {"OriginAccessIdentity": ""},
+      "OriginAccessControlId": "EPX1ETM4RCM1Q"
+    }]
+  },
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "s3-aws-it-ticket-system-dsgohel",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+    "AllowedMethods": {
+      "Quantity": 2,
+      "Items": ["GET", "HEAD"],
+      "CachedMethods": {"Quantity": 2, "Items": ["GET", "HEAD"]}
+    },
+    "Compress": true
+  },
+  "DefaultRootObject": "index.html",
+  "Comment": "AWS-IT-Ticket-Triage-System",
+  "Enabled": true,
+  "HttpVersion": "http2",
+  "PriceClass": "PriceClass_100"
+}
