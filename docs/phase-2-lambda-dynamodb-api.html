@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Phase 2: Lambda + DynamoDB + API Gateway — AWS IT Ticket Triage System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2128;
+    --border: #2a2d35;
+    --text: #e8e9eb;
+    --muted: #7a7f8a;
+    --accent: #4a9eff;
+    --accent2: #f0c060;
+    --green: #3ecf6e;
+    --red: #ff6b6b;
+    --purple: #c084fc;
+    --code-bg: #12141a;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    font-size: 17px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(14,15,17,0.92);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+
+  .site-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    text-decoration: none;
+  }
+
+  .header-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 4px;
+  }
+
+  .hero {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 5rem 2rem 3rem;
+  }
+
+  .phase-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .phase-tag::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--accent2);
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    color: #f0f1f3;
+  }
+
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+
+  .hero-desc {
+    font-size: 19px;
+    color: #9da3b0;
+    line-height: 1.7;
+    border-left: 2px solid var(--accent);
+    padding-left: 1.25rem;
+    font-style: italic;
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+  }
+
+  .services-strip {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 2rem 3rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .svc-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(74,158,255,0.08);
+    border: 1px solid rgba(74,158,255,0.2);
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+  }
+
+  .divider {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    border-top: 1px solid var(--border);
+    margin-bottom: 3.5rem;
+  }
+
+  .body { max-width: 780px; margin: 0 auto; padding: 0 2rem 6rem; }
+
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.65rem;
+    color: #f0f1f3;
+    margin: 3.5rem 0 1rem;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    color: var(--accent2);
+    margin: 2.5rem 0 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 12px;
+  }
+
+  p { margin-bottom: 1.25rem; color: #9da3b0; }
+  p strong { color: var(--text); font-weight: 500; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem 1.75rem;
+    margin: 2rem 0;
+  }
+
+  .step-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .step-title {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+
+  .step p { margin-bottom: 0.75rem; }
+  .step p:last-child { margin-bottom: 0; }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    overflow-x: auto;
+    margin: 1.25rem 0;
+    font-size: 13.5px;
+  }
+
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    color: #c9d1e0;
+    font-size: 13.5px;
+  }
+
+  p code, li code {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #b8c5d8;
+  }
+
+  .kw  { color: #79b8ff; }
+  .str { color: #9ecbff; }
+  .cm  { color: #586069; font-style: italic; }
+  .val { color: var(--green); }
+  .cmd { color: var(--accent2); }
+  .key { color: #e2a4ff; }
+  .fn  { color: #b392f0; }
+  .num { color: #f0c060; }
+
+  .callout {
+    display: flex;
+    gap: 1rem;
+    background: rgba(74,158,255,0.06);
+    border: 1px solid rgba(74,158,255,0.18);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+  }
+
+  .callout.warn { background: rgba(240,192,96,0.06); border-color: rgba(240,192,96,0.2); }
+  .callout.success { background: rgba(62,207,110,0.06); border-color: rgba(62,207,110,0.2); }
+  .callout.danger { background: rgba(255,107,107,0.06); border-color: rgba(255,107,107,0.2); }
+
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { font-size: 14.5px; color: #8d95a5; line-height: 1.6; }
+  .callout-body strong { color: var(--text); }
+  .callout-body p { margin-bottom: 0.4rem; color: #8d95a5; }
+  .callout-body p:last-child { margin-bottom: 0; }
+
+  /* Flow diagram */
+  .flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2rem;
+    margin: 2rem 0;
+    overflow-x: auto;
+  }
+
+  .flow-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-width: 500px;
+  }
+
+  .flow-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .flow-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .flow-box.blue { border-color: rgba(74,158,255,0.4); background: rgba(74,158,255,0.08); color: var(--accent); }
+  .flow-box.green { border-color: rgba(62,207,110,0.4); background: rgba(62,207,110,0.08); color: var(--green); }
+  .flow-box.purple { border-color: rgba(192,132,252,0.4); background: rgba(192,132,252,0.08); color: var(--purple); }
+  .flow-box.amber { border-color: rgba(240,192,96,0.4); background: rgba(240,192,96,0.08); color: var(--accent2); }
+
+  .flow-sub {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    text-align: center;
+  }
+
+  .flow-arrow { color: var(--muted); padding: 0 10px; font-size: 16px; padding-bottom: 18px; flex-shrink: 0; }
+
+  /* Output block */
+  .output {
+    background: #0a0c0f;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    margin: 1.25rem 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: #7dc89a;
+    line-height: 1.6;
+  }
+
+  .insight {
+    background: var(--surface);
+    border-top: 2px solid var(--accent2);
+    border-radius: 0 0 8px 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 2rem 0;
+  }
+
+  .insight-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .insight p { color: #8d95a5; font-size: 14.5px; margin-bottom: 0; }
+  .insight p strong { color: var(--text); }
+
+  /* Keyword table */
+  .kw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin: 1.5rem 0;
+  }
+
+  .kw-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .kw-card-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .kw-card.hardware .kw-card-label { color: var(--accent2); }
+  .kw-card.network .kw-card-label  { color: var(--accent); }
+  .kw-card.access .kw-card-label   { color: var(--purple); }
+  .kw-card.software .kw-card-label { color: var(--green); }
+
+  .kw-card p { font-size: 13px; color: var(--muted); margin-bottom: 0; line-height: 1.5; }
+
+  .checklist { list-style: none; margin: 1.5rem 0; display: flex; flex-direction: column; gap: 10px; }
+  .checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: #8d95a5; }
+
+  .check {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: rgba(62,207,110,0.15);
+    border: 1px solid rgba(62,207,110,0.35);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+
+  .check svg { width: 10px; height: 10px; stroke: var(--green); fill: none; stroke-width: 2.5; }
+
+  .next-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    text-decoration: none;
+    margin-bottom: 2rem;
+    transition: border-color 0.15s;
+  }
+
+  .next-link:hover { border-color: var(--accent); text-decoration: none; }
+
+  ul { padding-left: 1.25rem; margin-bottom: 1.25rem; }
+  ul li { color: #9da3b0; margin-bottom: 0.4rem; font-size: 15.5px; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 1rem; }
+    .hero, .body, .services-strip, .divider { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="site-name" href="#">dsgohel / aws-build-log</a>
+  <span class="header-tag">ca-central-1</span>
+</header>
+
+<div class="hero">
+  <div class="phase-tag">Phase 2</div>
+  <h1>The Serverless Backend: Lambda, DynamoDB, and API Gateway</h1>
+  <div class="hero-meta">
+    <span>Dhaivat Gohel</span>
+    <div class="dot"></div>
+    <span>April 2026</span>
+    <div class="dot"></div>
+    <span>10 min read</span>
+  </div>
+  <p class="hero-desc">
+    The frontend is live. Now the system needs a brain. This phase builds the entire serverless backend — a Python Lambda function that auto-categorizes and prioritizes IT tickets, a DynamoDB table that stores them, and an API Gateway endpoint that connects everything to the web.
+  </p>
+</div>
+
+<div class="services-strip">
+  <span class="svc-badge">Lambda</span>
+  <span class="svc-badge">DynamoDB</span>
+  <span class="svc-badge">API Gateway</span>
+  <span class="svc-badge">IAM</span>
+  <span class="svc-badge">Python 3.12</span>
+  <span class="svc-badge">boto3</span>
+  <span class="svc-badge">ca-central-1</span>
+</div>
+
+<div class="divider"></div>
+
+<div class="body">
+
+  <h2>The full request flow</h2>
+  <p>Before writing a single line of code, I mapped out the complete request lifecycle. Every architecture decision in this phase follows from this diagram.</p>
+
+  <div class="flow">
+    <div class="flow-label">Ticket submission flow</div>
+    <div class="flow-row">
+      <div class="flow-node">
+        <div class="flow-box">Browser</div>
+        <div class="flow-sub">POST /tickets</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        <div class="flow-box blue">API Gateway</div>
+        <div class="flow-sub">HTTPS endpoint</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        <div class="flow-box purple">Lambda</div>
+        <div class="flow-sub">Triage + categorize</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        <div class="flow-box amber">DynamoDB</div>
+        <div class="flow-sub">Persist ticket</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        <div class="flow-box green">Response</div>
+        <div class="flow-sub">ticketId + priority</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Why serverless for an IT ticketing system?</h2>
+  <p>
+    The traditional approach would be an EC2 instance running a web server — always on, always billing. For a ticketing system that might receive 50 submissions a day, you'd be paying for idle compute 99% of the time.
+  </p>
+  <p>
+    With Lambda, you pay only when a ticket is actually submitted. At portfolio traffic levels, the Lambda and API Gateway costs are <strong>effectively zero</strong> — fractions of a cent per month. More importantly, there's no server to patch, no OS to maintain, no capacity to provision. This is exactly the cost and operational efficiency argument you'd make when proposing a serverless architecture at a Canadian company.
+  </p>
+
+  <h2>Step 2.1 — DynamoDB table</h2>
+
+  <pre><code><span class="cmd">aws dynamodb create-table</span> \
+  <span class="key">--table-name</span> <span class="val">it-tickets</span> \
+  <span class="key">--attribute-definitions</span> AttributeName=ticketId,AttributeType=S \
+  <span class="key">--key-schema</span> AttributeName=ticketId,KeyType=HASH \
+  <span class="key">--billing-mode</span> PAY_PER_REQUEST \
+  <span class="key">--region</span> ca-central-1</code></pre>
+
+  <div class="step">
+    <div class="step-number">DECISION</div>
+    <div class="step-title">Why DynamoDB and not RDS?</div>
+    <p>IT tickets are naturally document-shaped — each ticket has a different set of fields depending on its type. A Hardware ticket might include a device serial number. An Access ticket might include the system being accessed. DynamoDB's schema-free model handles this cleanly. RDS would require either a rigid schema or a JSONB column hack.</p>
+    <p>DynamoDB also scales to zero cost at idle with PAY_PER_REQUEST billing — no minimum instance cost like RDS. For a system with unpredictable, low traffic this is the correct choice.</p>
+  </div>
+
+  <div class="step">
+    <div class="step-number">DECISION</div>
+    <div class="step-title">Why PAY_PER_REQUEST billing mode?</div>
+    <p>DynamoDB has two billing modes. Provisioned capacity requires you to predict read/write throughput upfront and pay for it whether you use it or not. PAY_PER_REQUEST charges per operation — ideal for unpredictable or low-volume workloads. At portfolio scale this costs less than $0.01/month. In a high-volume production system with predictable traffic, provisioned capacity would be cheaper.</p>
+  </div>
+
+  <h2>Step 2.2 — IAM role for Lambda</h2>
+  <p>
+    Lambda needs permissions to write to DynamoDB and to emit logs to CloudWatch. The correct way to grant these is through an <strong>IAM execution role</strong> — not hardcoded credentials, not environment variables with access keys. Never that.
+  </p>
+
+  <div class="callout danger">
+    <div class="callout-icon">✕</div>
+    <div class="callout-body">
+      <p><strong>The most common Lambda security mistake</strong></p>
+      <p>Hardcoding AWS credentials inside Lambda function code. This gets committed to GitHub, scraped by bots within minutes, and results in compromised accounts and unexpected bills. IAM roles exist precisely to eliminate this pattern. Lambda automatically receives temporary, rotating credentials through its execution role — no keys required.</p>
+    </div>
+  </div>
+
+  <p>The role was created with two policies attached:</p>
+  <ul>
+    <li><strong>AWSLambdaBasicExecutionRole</strong> — managed policy that allows writing logs to CloudWatch. Without this, debugging is impossible.</li>
+    <li><strong>Custom DynamoDB policy</strong> — scoped to exactly four actions on exactly one table: <code>PutItem</code>, <code>GetItem</code>, <code>Scan</code>, <code>Query</code>. No <code>DeleteItem</code>. No <code>UpdateItem</code>. No access to any other table.</li>
+  </ul>
+
+  <pre><code>{
+  <span class="key">"Effect"</span>: <span class="str">"Allow"</span>,
+  <span class="key">"Action"</span>: [
+    <span class="str">"dynamodb:PutItem"</span>,    <span class="cm">// write new ticket</span>
+    <span class="str">"dynamodb:GetItem"</span>,    <span class="cm">// fetch one ticket by ID</span>
+    <span class="str">"dynamodb:Scan"</span>,       <span class="cm">// list all tickets (admin dashboard)</span>
+    <span class="str">"dynamodb:Query"</span>       <span class="cm">// filter tickets by criteria</span>
+  ],
+  <span class="key">"Resource"</span>: <span class="str">"arn:aws:dynamodb:ca-central-1:[ACCOUNT-ID]:table/it-tickets"</span>
+}</code></pre>
+
+  <h2>Step 2.3 — The triage Lambda function</h2>
+  <p>
+    The Lambda function is the core of the system. It receives a ticket submission, categorizes it, assigns a priority, and persists it to DynamoDB — all in under 500ms.
+  </p>
+
+  <h3>Categorization logic</h3>
+  <p>The function scans the ticket description for keywords and assigns one of five categories:</p>
+
+  <div class="kw-grid">
+    <div class="kw-card hardware">
+      <div class="kw-card-label">Hardware</div>
+      <p>laptop, computer, printer, monitor, keyboard, mouse</p>
+    </div>
+    <div class="kw-card network">
+      <div class="kw-card-label">Network</div>
+      <p>wifi, internet, vpn, connection, ethernet</p>
+    </div>
+    <div class="kw-card access">
+      <div class="kw-card-label">Access</div>
+      <p>password, login, account, locked, permission</p>
+    </div>
+    <div class="kw-card software">
+      <div class="kw-card-label">Software</div>
+      <p>app, install, crash, error, update, virus</p>
+    </div>
+  </div>
+
+  <h3>Priority logic</h3>
+  <p>Priority is assigned based on urgency keywords in the description, with category as a tiebreaker:</p>
+
+  <pre><code><span class="kw">def</span> <span class="fn">prioritize</span>(description, category):
+    text = description.lower()
+
+    <span class="kw">if</span> <span class="fn">any</span>(word <span class="kw">in</span> text <span class="kw">for</span> word <span class="kw">in</span> [<span class="str">'urgent'</span>, <span class="str">'critical'</span>, <span class="str">'down'</span>, <span class="str">'outage'</span>, <span class="str">'breach'</span>]):
+        <span class="kw">return</span> <span class="str">'Critical'</span>
+    <span class="kw">elif</span> <span class="fn">any</span>(word <span class="kw">in</span> text <span class="kw">for</span> word <span class="kw">in</span> [<span class="str">'slow'</span>, <span class="str">'not working'</span>, <span class="str">'broken'</span>, <span class="str">'failed'</span>]):
+        <span class="kw">return</span> <span class="str">'High'</span>
+    <span class="kw">elif</span> category <span class="kw">in</span> [<span class="str">'Network'</span>, <span class="str">'Access'</span>]:
+        <span class="kw">return</span> <span class="str">'Medium'</span>   <span class="cm"># connectivity issues default to medium</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="str">'Low'</span></code></pre>
+
+  <h3>The ticket object written to DynamoDB</h3>
+
+  <pre><code>{
+  <span class="key">"ticketId"</span>:    <span class="str">"b4b582a6-b71f-4945-bb09-96dc22dde6ac"</span>,  <span class="cm">// uuid4()</span>
+  <span class="key">"name"</span>:        <span class="str">"John Smith"</span>,
+  <span class="key">"email"</span>:       <span class="str">"john@example.com"</span>,
+  <span class="key">"description"</span>: <span class="str">"My laptop is broken and I cant access the network"</span>,
+  <span class="key">"category"</span>:    <span class="str">"Hardware"</span>,
+  <span class="key">"priority"</span>:    <span class="str">"High"</span>,
+  <span class="key">"status"</span>:      <span class="str">"Open"</span>,
+  <span class="key">"createdAt"</span>:   <span class="str">"2026-04-01T22:28:35.000352+00:00"</span>
+}</code></pre>
+
+  <div class="insight">
+    <div class="insight-label">Engineering insight</div>
+    <p><strong>Why store category and priority in DynamoDB</strong> rather than computing them on read? Because DynamoDB reads should be fast and cheap. Doing keyword scanning on every dashboard load would add latency and complexity. Computing on write and storing the result is the correct pattern — it's called <strong>write-time enrichment</strong> and is standard in event-driven architectures.</p>
+  </div>
+
+  <h2>Step 2.4 — API Gateway</h2>
+  <p>
+    API Gateway creates the public HTTPS endpoint that the web form POSTs to. It sits between the browser and Lambda, handling TLS termination, request routing, and throttling.
+  </p>
+
+  <div class="step">
+    <div class="step-number">DECISION</div>
+    <div class="step-title">Why AWS_PROXY integration?</div>
+    <p>API Gateway supports two integration modes. Non-proxy mode lets you transform requests and responses using mapping templates — powerful but complex. AWS_PROXY passes the entire request to Lambda as-is and returns Lambda's response directly to the client. For a new API where Lambda already handles all the logic, proxy integration is simpler, more maintainable, and what AWS recommends.</p>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-icon">⚠</div>
+    <div class="callout-body">
+      <p><strong>Why OPTIONS method matters</strong></p>
+      <p>Browsers send a CORS preflight OPTIONS request before any cross-origin POST. If API Gateway doesn't accept OPTIONS, the browser silently blocks the actual request — and you get a confusing error with no obvious cause. Both POST and OPTIONS must be configured and connected to Lambda. Our Lambda function handles the OPTIONS response directly, returning the correct CORS headers.</p>
+    </div>
+  </div>
+
+  <h3>Cross-service permissions</h3>
+  <p>
+    Even after wiring API Gateway to Lambda in the console, Lambda still needs to explicitly trust API Gateway to invoke it. This is AWS's bilateral permission model — both sides must consent. The permission is scoped tightly:
+  </p>
+
+  <pre><code><span class="key">"Action"</span>: <span class="str">"lambda:InvokeFunction"</span>,
+<span class="key">"Principal"</span>: <span class="str">"apigateway.amazonaws.com"</span>,
+<span class="key">"Condition"</span>: {
+  <span class="key">"ArnLike"</span>: {
+    <span class="key">"AWS:SourceArn"</span>: <span class="str">"arn:aws:execute-api:ca-central-1:[ACCOUNT-ID]:[API-ID]/*/POST/tickets"</span>
+  }
+}</code></pre>
+
+  <p>Only this specific API, this specific method, this specific resource. Not any API Gateway in the account.</p>
+
+  <h2>End-to-end test results</h2>
+  <p>Before building the frontend, I validated the entire pipeline with a direct curl call:</p>
+
+  <pre><code><span class="cmd">curl</span> -X POST \
+  https://[API-ID].execute-api.ca-central-1.amazonaws.com/prod/tickets \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{"name": "Jane Doe", "email": "jane@example.com", "description": "Cannot login to VPN, account seems locked"}'</span></code></pre>
+
+  <div class="output">{"message": "Ticket submitted successfully", "ticketId": "5730022e-2081-4924-92f0-059162102ccd", "category": "Network", "priority": "Medium"}</div>
+
+  <p>
+    VPN → `Network` category. Network category → `Medium` priority. Ticket written to DynamoDB and retrievable by ID. The full pipeline working over the public internet via HTTPS in under 500ms.
+  </p>
+
+  <div class="callout success">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <p><strong>Always test before building the frontend.</strong> Validating the API with curl first means that when the form doesn't work, you know the problem is in the frontend — not somewhere in the backend stack. Isolating layers is how you debug efficiently.</p>
+    </div>
+  </div>
+
+  <h2>Phase 2 checklist</h2>
+
+  <ul class="checklist">
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> DynamoDB table created with PAY_PER_REQUEST billing</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> IAM execution role with least-privilege DynamoDB + CloudWatch policies</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Lambda function deployed on Python 3.12 with keyword triage logic</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Lambda tested directly via CLI — correct category and priority returned</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Ticket verified in DynamoDB via scan</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> API Gateway REST API with POST + OPTIONS on /tickets</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Lambda permission scoped to specific API ARN</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> End-to-end curl test passed over public HTTPS endpoint</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> All code committed to GitHub</li>
+  </ul>
+
+  <h2>What's next</h2>
+  <p>
+    Phase 3: SES email alerts so the IT team gets notified on every new ticket, a CloudWatch dashboard for live metrics, and a billing alarm so costs never surprise us. Then Phase 4 wires the real frontend form to this API endpoint.
+  </p>
+
+  <a class="next-link" href="#">Phase 3: SES + CloudWatch + Billing Alarm →</a>
+
+  <div class="callout">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <p><strong>All code is open source:</strong> <a href="https://github.com/DhaivatGohel/aws-it-ticket-system">github.com/DhaivatGohel/aws-it-ticket-system</a></p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div style="margin-bottom: 0.5rem;">Dhaivat Gohel · AWS IT Ticket Triage System Build Log</div>
+  <div>AWS Certified Cloud Practitioner · SAA candidate · Toronto, ON</div>
+</footer>
+
+</body>
+</html>

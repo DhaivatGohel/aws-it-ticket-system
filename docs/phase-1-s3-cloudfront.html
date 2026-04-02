@@ -681,19 +681,19 @@
   <span class="key">"Resource"</span>: <span class="str">"arn:aws:s3:::aws-it-ticket-system-dsgohel/*"</span>,
   <span class="key">"Condition"</span>: {
     <span class="key">"StringEquals"</span>: {
-      <span class="key">"AWS:SourceArn"</span>: <span class="str">"arn:aws:cloudfront::671391594873:distribution/E14LEG5C54VQZA"</span>
+      <span class="key">"AWS:SourceArn"</span>: <span class="str">"arn:aws:cloudfront::[ACCOUNT-ID]:distribution/[DISTRIBUTION-ID]"</span>
     }
   }
 }</code></pre>
 
   <p>
-    This policy is the enforcement layer. It permits <code>s3:GetObject</code> — reading files — but only when the request comes from distribution <code>E14LEG5C54VQZA</code> in account <code>671391594873</code>. Not from any other CloudFront distribution. Not from another AWS account. Not from the public. <strong>Exactly one entity, exactly one permission.</strong> This is least-privilege applied correctly.
+    This policy is the enforcement layer. It permits <code>s3:GetObject</code> — reading files — but only when the request comes from distribution <code>[DISTRIBUTION-ID]</code> in account <code>[ACCOUNT-ID]</code>. Not from any other CloudFront distribution. Not from another AWS account. Not from the public. <strong>Exactly one entity, exactly one permission.</strong> This is least-privilege applied correctly.
   </p>
 
   <h2>Verifying the deployment</h2>
 
   <pre><code><span class="cmd">aws cloudfront get-distribution</span> \
-  <span class="key">--id</span> <span class="val">E14LEG5C54VQZA</span> \
+  <span class="key">--id</span> <span class="val">[DISTRIBUTION-ID]</span> \
   <span class="key">--query</span> <span class="str">"Distribution.Status"</span></code></pre>
 
   <div class="output">"Deployed"</div>
