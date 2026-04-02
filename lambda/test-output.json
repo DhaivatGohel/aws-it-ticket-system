@@ -1,0 +1,1 @@
+{"statusCode": 200, "headers": {"Access-Control-Allow-Origin": "*"}, "body": "{\"message\": \"Ticket submitted successfully\", \"ticketId\": \"b4b582a6-b71f-4945-bb09-96dc22dde6ac\", \"category\": \"Hardware\", \"priority\": \"High\"}"}
