@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IT Admin Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0f11;
+      --surface: #16181c;
+      --surface2: #1e2128;
+      --border: #2a2d35;
+      --text: #e8e9eb;
+      --muted: #7a7f8a;
+      --accent: #4a9eff;
+      --green: #3ecf6e;
+      --red: #ff6b6b;
+      --amber: #f0c060;
+      --purple: #c084fc;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .header-left h1 { font-size: 1.3rem; font-weight: 600; }
+    .header-left p  { font-size: 13px; color: var(--muted); margin-top: 0.2rem; }
+
+    .refresh-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      color: var(--accent);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+
+    .refresh-btn:hover { border-color: var(--accent); }
+
+    /* Stat cards */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-card.critical .stat-value { color: var(--red); }
+    .stat-card.high     .stat-value { color: var(--amber); }
+    .stat-card.open     .stat-value { color: var(--accent); }
+
+    /* Filters */
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover  { color: var(--text); border-color: var(--accent); }
+    .filter-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(74,158,255,0.08); }
+
+    /* Ticket table */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    thead {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: #9da3b0;
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface2); }
+
+    .ticket-id {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .ticket-desc {
+      max-width: 260px;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .cat-hardware { background: rgba(240,192,96,0.12); color: var(--amber); }
+    .cat-network  { background: rgba(74,158,255,0.12); color: var(--accent); }
+    .cat-access   { background: rgba(192,132,252,0.12); color: var(--purple); }
+    .cat-software { background: rgba(62,207,110,0.12); color: var(--green); }
+    .cat-general  { background: rgba(122,127,138,0.12); color: var(--muted); }
+
+    .pri-critical { background: rgba(255,107,107,0.12); color: var(--red); }
+    .pri-high     { background: rgba(240,192,96,0.12);  color: var(--amber); }
+    .pri-medium   { background: rgba(74,158,255,0.12);  color: var(--accent); }
+    .pri-low      { background: rgba(62,207,110,0.12);  color: var(--green); }
+
+    .status-badge {
+      background: rgba(62,207,110,0.1);
+      color: var(--green);
+      border: 1px solid rgba(62,207,110,0.25);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+      font-size: 14px;
+      font-family: monospace;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 1.5rem;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    .ts {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 700px) {
+      body { padding: 1rem; }
+      .ticket-desc { max-width: 140px; }
+      th:nth-child(1), td:nth-child(1) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <h1>IT Admin Dashboard</h1>
+      <p>Live ticket queue — auto-refreshes every 30 seconds</p>
+    </div>
+    <button class="refresh-btn" onclick="loadTickets()">Refresh</button>
+  </header>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">Total tickets</div>
+      <div class="stat-value" id="stat-total">—</div>
+    </div>
+    <div class="stat-card open">
+      <div class="stat-label">Open</div>
+      <div class="stat-value" id="stat-open">—</div>
+    </div>
+    <div class="stat-card critical">
+      <div class="stat-label">Critical</div>
+      <div class="stat-value" id="stat-critical">—</div>
+    </div>
+    <div class="stat-card high">
+      <div class="stat-label">High</div>
+      <div class="stat-value" id="stat-high">—</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" onclick="setFilter('Critical', this)">Critical</button>
+    <button class="filter-btn" onclick="setFilter('High', this)">High</button>
+    <button class="filter-btn" onclick="setFilter('Medium', this)">Medium</button>
+    <button class="filter-btn" onclick="setFilter('Low', this)">Low</button>
+    <button class="filter-btn" onclick="setFilter('Hardware', this)">Hardware</button>
+    <button class="filter-btn" onclick="setFilter('Network', this)">Network</button>
+    <button class="filter-btn" onclick="setFilter('Access', this)">Access</button>
+    <button class="filter-btn" onclick="setFilter('Software', this)">Software</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ticket ID</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody id="ticket-tbody">
+        <tr><td colspan="6" class="loading">Loading tickets...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <a class="back-link" href="index.html">← Submit a ticket</a>
+
+  <script>
+    const API_URL = 'https://vf9b38r06l.execute-api.ca-central-1.amazonaws.com/prod/tickets';
+    let allTickets = [];
+    let activeFilter = 'all';
+
+    async function loadTickets() {
+      const tbody = document.getElementById('ticket-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading...</td></tr>';
+
+      try {
+        const response = await fetch(API_URL + '?action=list');
+        const data = await response.json();
+        allTickets = data.tickets || [];
+        updateStats();
+        renderTickets();
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Could not load tickets. Check API connection.</td></tr>';
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('stat-total').textContent    = allTickets.length;
+      document.getElementById('stat-open').textContent     = allTickets.filter(t => t.status === 'Open').length;
+      document.getElementById('stat-critical').textContent = allTickets.filter(t => t.priority === 'Critical').length;
+      document.getElementById('stat-high').textContent     = allTickets.filter(t => t.priority === 'High').length;
+    }
+
+    function setFilter(filter, btn) {
+      activeFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderTickets();
+    }
+
+    function renderTickets() {
+      const tbody = document.getElementById('ticket-tbody');
+      let tickets = [...allTickets];
+
+      if (activeFilter !== 'all') {
+        tickets = tickets.filter(t => t.priority === activeFilter || t.category === activeFilter);
+      }
+
+      // Sort: Critical first, then High, then by date
+      const order = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+      tickets.sort((a, b) => (order[a.priority] ?? 4) - (order[b.priority] ?? 4));
+
+      if (tickets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No tickets found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = tickets.map(t => {
+        const shortId = t.ticketId.split('-')[0];
+        const date    = new Date(t.createdAt).toLocaleString('en-CA', { dateStyle: 'short', timeStyle: 'short' });
+        const catClass = 'cat-' + (t.category || 'general').toLowerCase();
+        const priClass = 'pri-' + (t.priority || 'low').toLowerCase();
+
+        return `<tr>
+          <td class="ticket-id">${shortId}...</td>
+          <td class="ticket-desc">${escapeHtml(t.description)}</td>
+          <td><span class="badge ${catClass}">${t.category}</span></td>
+          <td><span class="badge ${priClass}">${t.priority}</span></td>
+          <td><span class="status-badge">${t.status}</span></td>
+          <td class="ts">${date}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Load on page open, then refresh every 30 seconds
+    loadTickets();
+    setInterval(loadTickets, 30000);
+  </script>
+
+</body>
+</html>

@@ -3,34 +3,261 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AWS IT Ticket Triage System</title>
+  <title>IT Support — Submit a Ticket</title>
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0f11;
+      --surface: #16181c;
+      --border: #2a2d35;
+      --text: #e8e9eb;
+      --muted: #7a7f8a;
+      --accent: #4a9eff;
+      --green: #3ecf6e;
+      --red: #ff6b6b;
+      --amber: #f0c060;
+    }
+
     body {
-      font-family: sans-serif;
-      background: #0e0f11;
-      color: #e8e9eb;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
+      padding: 2rem 1rem;
     }
+
     .card {
-      text-align: center;
-      border: 1px solid #2a2d35;
-      padding: 3rem 4rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
-      background: #16181c;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 520px;
     }
-    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-    p  { color: #7a7f8a; font-size: 0.95rem; }
+
+    .card-header { margin-bottom: 2rem; }
+
+    .card-tag {
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 { font-size: 1.4rem; font-weight: 600; color: var(--text); }
+    p.sub { font-size: 14px; color: var(--muted); margin-top: 0.4rem; }
+
+    .field { margin-bottom: 1.25rem; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+
+    input, textarea {
+      width: 100%;
+      background: #0e0f11;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.15s;
+      outline: none;
+    }
+
+    input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 110px; }
+
+    button {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      margin-top: 0.5rem;
+    }
+
+    button:hover { opacity: 0.88; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result {
+      display: none;
+      margin-top: 1.25rem;
+      background: #0a0c0f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      font-size: 13px;
+      font-family: monospace;
+    }
+
+    .result.success { border-left: 3px solid var(--green); }
+    .result.error   { border-left: 3px solid var(--red); }
+
+    .result-label {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .result.success .result-label { color: var(--green); }
+    .result.error   .result-label { color: var(--red); }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 0;
+      color: #9da3b0;
+    }
+
+    .result-row span:last-child { color: var(--text); font-weight: 500; }
+
+    .priority-critical { color: var(--red); }
+    .priority-high     { color: var(--amber); }
+    .priority-medium   { color: var(--accent); }
+    .priority-low      { color: var(--green); }
+
+    .footer-link {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .footer-link a { color: var(--accent); text-decoration: none; }
+    .footer-link a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
+
   <div class="card">
-    <h1>AWS IT Ticket Triage System</h1>
-    <p>Phase 1 — S3 + CloudFront live. Ticket form coming in Phase 2.</p>
-    <p style="margin-top:1rem; font-size:0.8rem; color:#4a9eff;">ca-central-1 · dsgohel</p>
+    <div class="card-header">
+      <div class="card-tag">IT Support Portal</div>
+      <h1>Submit a Support Ticket</h1>
+      <p class="sub">Tickets are automatically categorized and prioritized.</p>
+    </div>
+
+    <div class="field">
+      <label for="name">Your name</label>
+      <input type="text" id="name" placeholder="Jane Smith" />
+    </div>
+
+    <div class="field">
+      <label for="email">Work email</label>
+      <input type="email" id="email" placeholder="jane@company.com" />
+    </div>
+
+    <div class="field">
+      <label for="description">Describe your issue <span style="color:var(--red)">*</span></label>
+      <textarea id="description" placeholder="e.g. My laptop won't connect to the VPN after the Windows update..."></textarea>
+    </div>
+
+    <button id="submitBtn" onclick="submitTicket()">Submit Ticket</button>
+
+    <div class="result" id="result">
+      <div class="result-label" id="result-label"></div>
+      <div id="result-content"></div>
+    </div>
   </div>
+
+  <div class="footer-link">
+    IT Admin? <a href="dashboard.html">View dashboard →</a>
+  </div>
+
+  <script>
+    // Replace this with your actual API Gateway endpoint
+    const API_URL = 'https://vf9b38r06l.execute-api.ca-central-1.amazonaws.com/prod/tickets';
+
+    async function submitTicket() {
+      const name        = document.getElementById('name').value.trim();
+      const email       = document.getElementById('email').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const btn         = document.getElementById('submitBtn');
+      const result      = document.getElementById('result');
+
+      // Basic validation
+      if (!description) {
+        showError('Please describe your issue before submitting.');
+        return;
+      }
+
+      // Disable button while request is in flight
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, description })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showSuccess(data);
+          // Clear the form
+          document.getElementById('name').value = '';
+          document.getElementById('email').value = '';
+          document.getElementById('description').value = '';
+        } else {
+          showError(data.error || 'Something went wrong. Please try again.');
+        }
+
+      } catch (err) {
+        showError('Could not reach the server. Check your connection.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Ticket';
+      }
+    }
+
+    function showSuccess(data) {
+      const result  = document.getElementById('result');
+      const label   = document.getElementById('result-label');
+      const content = document.getElementById('result-content');
+
+      const priorityClass = 'priority-' + data.priority.toLowerCase();
+
+      result.className = 'result success';
+      label.textContent = 'Ticket submitted';
+      content.innerHTML = `
+        <div class="result-row"><span>Ticket ID</span><span>${data.ticketId}</span></div>
+        <div class="result-row"><span>Category</span><span>${data.category}</span></div>
+        <div class="result-row"><span>Priority</span><span class="${priorityClass}">${data.priority}</span></div>
+      `;
+      result.style.display = 'block';
+    }
+
+    function showError(message) {
+      const result  = document.getElementById('result');
+      const label   = document.getElementById('result-label');
+      const content = document.getElementById('result-content');
+
+      result.className = 'result error';
+      label.textContent = 'Error';
+      content.innerHTML = `<div style="color:#ff6b6b">${message}</div>`;
+      result.style.display = 'block';
+    }
+  </script>
+
 </body>
 </html>
