@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Phase 3: SES Alerts + Billing Alarm — AWS IT Ticket Triage System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --bg: #0e0f11; --surface: #16181c; --surface2: #1e2128; --border: #2a2d35; --text: #e8e9eb; --muted: #7a7f8a; --accent: #4a9eff; --accent2: #f0c060; --green: #3ecf6e; --red: #ff6b6b; --purple: #c084fc; --code-bg: #12141a; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+  header { border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(14,15,17,0.92); backdrop-filter: blur(8px); z-index: 100; }
+  .site-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: 0.04em; text-decoration: none; }
+  .header-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); padding: 3px 10px; border-radius: 4px; }
+  .hero { max-width: 780px; margin: 0 auto; padding: 5rem 2rem 3rem; }
+  .phase-tag { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
+  .phase-tag::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--accent2); }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(2.2rem, 5vw, 3.2rem); line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1.5rem; color: #f0f1f3; }
+  .hero-meta { display: flex; align-items: center; gap: 1.5rem; font-size: 13px; color: var(--muted); margin-bottom: 2.5rem; flex-wrap: wrap; }
+  .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+  .hero-desc { font-size: 19px; color: #9da3b0; line-height: 1.7; border-left: 2px solid var(--accent); padding-left: 1.25rem; font-style: italic; font-family: 'Fraunces', serif; font-weight: 300; }
+  .services-strip { max-width: 780px; margin: 0 auto; padding: 0 2rem 3rem; display: flex; flex-wrap: wrap; gap: 8px; }
+  .svc-badge { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); background: rgba(74,158,255,0.08); border: 1px solid rgba(74,158,255,0.2); padding: 4px 10px; border-radius: 4px; letter-spacing: 0.03em; }
+  .divider { max-width: 780px; margin: 0 auto; padding: 0 2rem; border-top: 1px solid var(--border); margin-bottom: 3.5rem; }
+  .body { max-width: 780px; margin: 0 auto; padding: 0 2rem 6rem; }
+  h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.65rem; color: #f0f1f3; margin: 3.5rem 0 1rem; letter-spacing: -0.01em; line-height: 1.25; }
+  h3 { font-family: 'DM Sans', sans-serif; font-weight: 500; color: var(--accent2); margin: 2.5rem 0 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; font-size: 12px; }
+  p { margin-bottom: 1.25rem; color: #9da3b0; }
+  p strong { color: var(--text); font-weight: 500; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem 1.75rem; margin: 2rem 0; }
+  .step-number { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  .step-title { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 1.05rem; color: var(--text); margin-bottom: 1rem; }
+  .step p { margin-bottom: 0.75rem; }
+  .step p:last-child { margin-bottom: 0; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem 1.25rem; overflow-x: auto; margin: 1.25rem 0; font-size: 13.5px; }
+  code { font-family: 'IBM Plex Mono', monospace; color: #c9d1e0; font-size: 13.5px; }
+  p code, li code { background: var(--surface2); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 13px; color: #b8c5d8; }
+  .kw { color: #79b8ff; } .str { color: #9ecbff; } .cm { color: #586069; font-style: italic; } .val { color: var(--green); } .cmd { color: var(--accent2); } .key { color: #e2a4ff; } .fn { color: #b392f0; }
+  .callout { display: flex; gap: 1rem; background: rgba(74,158,255,0.06); border: 1px solid rgba(74,158,255,0.18); border-radius: 8px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+  .callout.warn { background: rgba(240,192,96,0.06); border-color: rgba(240,192,96,0.2); }
+  .callout.success { background: rgba(62,207,110,0.06); border-color: rgba(62,207,110,0.2); }
+  .callout.danger { background: rgba(255,107,107,0.06); border-color: rgba(255,107,107,0.2); }
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { font-size: 14.5px; color: #8d95a5; line-height: 1.6; }
+  .callout-body strong { color: var(--text); }
+  .callout-body p { margin-bottom: 0.4rem; color: #8d95a5; }
+  .callout-body p:last-child { margin-bottom: 0; }
+  .analogy { background: var(--surface); border-left: 3px solid var(--accent2); border-radius: 0 8px 8px 0; padding: 1.25rem 1.5rem; margin: 1.5rem 0; }
+  .analogy-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--accent2); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .analogy p { color: #8d95a5; font-size: 15px; margin-bottom: 0; }
+  .analogy p strong { color: var(--text); }
+  .output { background: #0a0c0f; border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 8px; padding: 1.1rem 1.25rem; margin: 1.25rem 0; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #7dc89a; line-height: 1.6; }
+  .insight { background: var(--surface); border-top: 2px solid var(--accent2); border-radius: 0 0 8px 8px; padding: 1.25rem 1.5rem; margin: 2rem 0; }
+  .insight-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--accent2); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .insight p { color: #8d95a5; font-size: 14.5px; margin-bottom: 0; }
+  .insight p strong { color: var(--text); }
+
+  /* Email mockup */
+  .email-mockup { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 2rem 0; }
+  .email-header { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 1rem 1.25rem; }
+  .email-subject { font-weight: 500; font-size: 15px; color: var(--text); margin-bottom: 0.5rem; }
+  .email-meta { font-size: 12px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; display: flex; flex-direction: column; gap: 3px; }
+  .email-body { padding: 1.25rem; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9da3b0; line-height: 1.8; white-space: pre-wrap; }
+  .email-highlight { color: var(--text); }
+  .email-link { color: var(--accent); }
+
+  /* Architecture flow */
+  .flow { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 2rem; margin: 2rem 0; overflow-x: auto; }
+  .flow-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1.5rem; }
+  .flow-row { display: flex; align-items: center; min-width: 400px; flex-wrap: wrap; gap: 0; row-gap: 1rem; }
+  .flow-node { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+  .flow-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text); white-space: nowrap; text-align: center; }
+  .flow-box.blue { border-color: rgba(74,158,255,0.4); background: rgba(74,158,255,0.08); color: var(--accent); }
+  .flow-box.green { border-color: rgba(62,207,110,0.4); background: rgba(62,207,110,0.08); color: var(--green); }
+  .flow-box.purple { border-color: rgba(192,132,252,0.4); background: rgba(192,132,252,0.08); color: var(--purple); }
+  .flow-box.amber { border-color: rgba(240,192,96,0.4); background: rgba(240,192,96,0.08); color: var(--accent2); }
+  .flow-box.red { border-color: rgba(255,107,107,0.4); background: rgba(255,107,107,0.08); color: var(--red); }
+  .flow-sub { font-size: 10px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; text-align: center; }
+  .flow-arrow { color: var(--muted); padding: 0 10px; font-size: 16px; padding-bottom: 18px; flex-shrink: 0; }
+
+  /* Keyword grid */
+  .kw-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 1.5rem 0; }
+  .kw-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+  .kw-card-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .kw-card.hardware .kw-card-label { color: var(--accent2); }
+  .kw-card.network .kw-card-label { color: var(--accent); }
+  .kw-card.access .kw-card-label { color: var(--purple); }
+  .kw-card.software .kw-card-label { color: var(--green); }
+  .kw-card.security .kw-card-label { color: var(--red); }
+  .kw-card p { font-size: 12.5px; color: var(--muted); margin-bottom: 0; line-height: 1.6; }
+
+  .checklist { list-style: none; margin: 1.5rem 0; display: flex; flex-direction: column; gap: 10px; }
+  .checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: #8d95a5; }
+  .check { width: 18px; height: 18px; border-radius: 50%; background: rgba(62,207,110,0.15); border: 1px solid rgba(62,207,110,0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .check svg { width: 10px; height: 10px; stroke: var(--green); fill: none; stroke-width: 2.5; }
+  .next-link { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1.25rem; color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-decoration: none; margin-bottom: 2rem; transition: border-color 0.15s; }
+  .next-link:hover { border-color: var(--accent); text-decoration: none; }
+  ul { padding-left: 1.25rem; margin-bottom: 1.25rem; }
+  ul li { color: #9da3b0; margin-bottom: 0.4rem; font-size: 15.5px; }
+  footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; text-align: center; font-size: 13px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  @media (max-width: 600px) { header { padding: 1rem; } .hero, .body, .services-strip, .divider { padding-left: 1.25rem; padding-right: 1.25rem; } }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="site-name" href="#">dsgohel / aws-build-log</a>
+  <span class="header-tag">ca-central-1</span>
+</header>
+
+<div class="hero">
+  <div class="phase-tag">Phase 3</div>
+  <h1>Alerting, Observability, and Cost Control</h1>
+  <div class="hero-meta">
+    <span>Dhaivat Gohel</span>
+    <div class="dot"></div>
+    <span>April 2026</span>
+    <div class="dot"></div>
+    <span>8 min read</span>
+  </div>
+  <p class="hero-desc">A system that stores tickets but never tells anyone is just a database. Phase 3 adds the operational layer — SES email alerts, a CloudWatch billing alarm, and an expanded triage engine that understands real IT language.</p>
+</div>
+
+<div class="services-strip">
+  <span class="svc-badge">SES</span>
+  <span class="svc-badge">SNS</span>
+  <span class="svc-badge">CloudWatch</span>
+  <span class="svc-badge">Lambda</span>
+  <span class="svc-badge">IAM</span>
+  <span class="svc-badge">us-east-1</span>
+  <span class="svc-badge">ca-central-1</span>
+</div>
+
+<div class="divider"></div>
+
+<div class="body">
+
+  <h2>Why alerting matters</h2>
+  <p>After Phase 2, the system could receive tickets and display them on a dashboard. But the IT team would have to remember to check the dashboard — which means tickets could sit unnoticed for hours. In a real IT environment, that's unacceptable for a Critical or High priority issue.</p>
+  <p>Phase 3 makes the system <strong>proactive</strong>. The moment a ticket is submitted, an email goes out automatically. Nobody needs to remember to check anything.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">Plain English</div>
+    <p>The difference between Phase 2 and Phase 3 is like the difference between a <strong>suggestion box and a pager.</strong> Both collect requests — but only one actually gets someone's attention immediately.</p>
+  </div>
+
+  <h2>The updated flow</h2>
+
+  <div class="flow">
+    <div class="flow-label">Ticket submission — updated flow</div>
+    <div class="flow-row">
+      <div class="flow-node"><div class="flow-box">Browser</div><div class="flow-sub">POST /tickets</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="flow-box blue">API Gateway</div><div class="flow-sub">HTTPS endpoint</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="flow-box purple">Lambda</div><div class="flow-sub">Triage + save</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="flow-box amber">DynamoDB</div><div class="flow-sub">Persist ticket</div></div>
+    </div>
+    <div style="margin-top: 1rem;" class="flow-row">
+      <div class="flow-node"><div class="flow-box purple">Lambda</div><div class="flow-sub">Also calls SES</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="flow-box green">SES</div><div class="flow-sub">Send email</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="flow-box">IT Team inbox</div><div class="flow-sub">Alert received</div></div>
+    </div>
+  </div>
+
+  <h2>Step 3.1 — SES (Simple Email Service)</h2>
+
+  <p>SES is AWS's email sending service. Before it trusts you to send mail, it requires you to verify ownership of the email address. This is sandbox mode — a security measure that prevents abuse. In sandbox mode, you can only send to addresses you've explicitly verified.</p>
+
+  <div class="step">
+    <div class="step-number">DECISION</div>
+    <div class="step-title">Why stay in SES sandbox mode for this project?</div>
+    <p>Moving out of sandbox requires submitting a request to AWS explaining your use case and expected send volume. For a portfolio project with one verified address, sandbox mode is perfectly sufficient — and it means we never accidentally spam anyone.</p>
+    <p>In a real corporate deployment, you'd request production access and verify your company domain so emails come from something like <code>it-alerts@company.com</code> rather than via <code>amazonses.com</code>.</p>
+  </div>
+
+  <h3>The email alert format</h3>
+  <p>Every ticket submission triggers this email to the IT team:</p>
+
+  <div class="email-mockup">
+    <div class="email-header">
+      <div class="email-subject">[HIGH] New IT Ticket — Access issue from Naman Vora</div>
+      <div class="email-meta">
+        <span>From: dhaivatgohel01@outlook.com via amazonses.com</span>
+        <span>To: dhaivatgohel01@outlook.com</span>
+      </div>
+    </div>
+    <div class="email-body"><span class="email-highlight">New IT support ticket submitted.</span>
+
+Ticket ID:   <span class="email-highlight">54748f75-ab90-430d-8199-4784a3ada265</span>
+Submitted:   2026-04-07T00:15:21.163356+00:00
+
+From:        <span class="email-highlight">Naman Vora</span>
+Email:       dhaivatgohel01@outlook.com
+Category:    <span class="email-highlight">Access</span>
+Priority:    <span class="email-highlight">High</span>
+Status:      Open
+
+Description:
+Intune not working.
+
+---
+View all tickets: <span class="email-link">https://d23mh63awvqncl.cloudfront.net/dashboard.html</span>
+AWS IT Ticket Triage System — ca-central-1</div>
+  </div>
+
+  <p>The subject line format — <code>[HIGH] New IT Ticket — Access issue from Naman Vora</code> — is designed for inbox scanning. An IT engineer on call can read the priority and category without even opening the email.</p>
+
+  <h3>Why email failure doesn't block ticket submission</h3>
+  <p>The <code>send_alert_email()</code> function is wrapped in its own try/except block inside Lambda:</p>
+
+  <pre><code><span class="kw">try</span>:
+    ses.send_email(...)
+    <span class="fn">print</span>(<span class="str">f"Alert email sent for ticket {ticket['ticketId']}"</span>)
+<span class="kw">except</span> Exception <span class="kw">as</span> e:
+    <span class="cm"># Email failure should not block ticket submission</span>
+    <span class="fn">print</span>(<span class="str">f"Email send failed: {str(e)}"</span>)</code></pre>
+
+  <p>If SES has an outage, if the email address is temporarily unreachable, if anything goes wrong — the ticket still saves to DynamoDB and the user still gets a success response. This is called <strong>graceful degradation</strong> — a core principle of resilient system design. The primary function (storing the ticket) never fails because a secondary function (sending an alert) had a problem.</p>
+
+  <div class="insight">
+    <div class="insight-label">Engineering insight</div>
+    <p><strong>DynamoDB write happens before the email call.</strong> This ordering is deliberate. If we sent the email first and then DynamoDB failed, the IT team would receive an alert for a ticket that doesn't exist in the system. Always persist data before triggering downstream side effects.</p>
+  </div>
+
+  <h2>Step 3.2 — Expanded triage keywords</h2>
+  <p>The original keyword lists covered basic IT scenarios. After testing with real ticket descriptions, several gaps were obvious — "Intune not working", "Teams keeps crashing", "phishing email" — none of these matched correctly. The keyword lists were expanded to cover real enterprise IT vocabulary:</p>
+
+  <div class="kw-grid">
+    <div class="kw-card hardware">
+      <div class="kw-card-label">Hardware</div>
+      <p>laptop, computer, printer, monitor, keyboard, mouse, hardware, screen, dock</p>
+    </div>
+    <div class="kw-card network">
+      <div class="kw-card-label">Network</div>
+      <p>wifi, internet, vpn, connection, ethernet, network, bandwidth, ping</p>
+    </div>
+    <div class="kw-card access">
+      <div class="kw-card-label">Access</div>
+      <p>password, login, account, locked, permission, intune, mfa, authenticator, azure, entra</p>
+    </div>
+    <div class="kw-card software">
+      <div class="kw-card-label">Software</div>
+      <p>app, crash, install, error, update, virus, teams, outlook, office, microsoft, onedrive, sharepoint</p>
+    </div>
+    <div class="kw-card security">
+      <div class="kw-card-label">Security</div>
+      <p>phishing, spam, suspicious, malware, ransomware, hacked, breach</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-number">DECISION</div>
+    <div class="step-title">Why a new Security category routes to Medium priority?</div>
+    <p>Security incidents like phishing reports warrant immediate attention but aren't always active breaches. Routing them to Medium by default ensures they appear prominently on the dashboard without triggering the same urgency as a confirmed breach or full outage. If the description contains words like "ransomware" or "hacked", the priority function escalates to Critical regardless of category.</p>
+  </div>
+
+  <h2>Step 3.3 — Billing alarm</h2>
+  <p>This is the operational safety net that every AWS project should have from day one. A CloudWatch alarm monitors the <code>EstimatedCharges</code> metric — which AWS publishes once per day — and sends an SNS notification if the monthly bill exceeds the threshold.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">Plain English</div>
+    <p>Think of it like a <strong>low balance alert on your bank account.</strong> You set a threshold — $2 USD in this case — and if your AWS bill crosses it at any point during the month, you get an email immediately. No surprises at month end.</p>
+  </div>
+
+  <h3>Why SNS instead of emailing directly from CloudWatch?</h3>
+  <p>CloudWatch alarms can't send emails directly. They publish to an <strong>SNS topic</strong> (Simple Notification Service) — a message bus that can fan out to multiple subscribers. One alarm can notify an entire on-call team by email, SMS, or Slack simultaneously. For this project we have one subscriber, but the pattern scales.</p>
+
+  <div class="step">
+    <div class="step-number">DECISION</div>
+    <div class="step-title">Why us-east-1 for the billing alarm?</div>
+    <p>AWS billing metrics (<code>EstimatedCharges</code>) are a global service that AWS centralizes in <code>us-east-1</code> — N. Virginia. Even though all our application resources live in <code>ca-central-1</code>, billing data is only published to <code>us-east-1</code>. This is one of the few cases where you genuinely have no choice about the region. The SNS topic and CloudWatch alarm must both be in <code>us-east-1</code> to see the billing metric.</p>
+  </div>
+
+  <pre><code><span class="cmd">aws cloudwatch put-metric-alarm</span> \
+  <span class="key">--alarm-name</span>          <span class="str">"aws-monthly-bill-over-2-dollars"</span> \
+  <span class="key">--metric-name</span>         EstimatedCharges \
+  <span class="key">--namespace</span>           AWS/Billing \
+  <span class="key">--statistic</span>           Maximum \
+  <span class="key">--period</span>              <span class="val">86400</span> \         <span class="cm"># check once per day</span>
+  <span class="key">--threshold</span>           <span class="val">2</span> \            <span class="cm"># $2 USD</span>
+  <span class="key">--comparison-operator</span> GreaterThanThreshold \
+  <span class="key">--evaluation-periods</span>  <span class="val">1</span> \
+  <span class="key">--treat-missing-data</span>  notBreaching \ <span class="cm"># no false alarms on missing data</span>
+  <span class="key">--region</span>              us-east-1</code></pre>
+
+  <p>The <code>treat-missing-data notBreaching</code> flag is important — AWS doesn't publish the billing metric every hour, only once per day. Without this flag, CloudWatch would treat the missing hourly data points as a potential problem and could trigger false alarms.</p>
+
+  <div class="callout warn">
+    <div class="callout-icon">⚠</div>
+    <div class="callout-body">
+      <p><strong>Enable billing alerts in your AWS account settings</strong></p>
+      <p>CloudWatch billing alarms only work if billing alerts are enabled in your account. Go to AWS Console → Billing → Billing preferences → check "Receive CloudWatch Billing Alerts." Without this, the alarm exists but never receives data to evaluate.</p>
+    </div>
+  </div>
+
+  <h2>Cost for this phase</h2>
+  <p>With the free tier expired, here is the honest monthly cost for everything added in Phase 3:</p>
+
+  <ul>
+    <li><strong>SES:</strong> $0.10 per 1,000 emails — at 50 emails/month that's $0.005</li>
+    <li><strong>SNS:</strong> First 1,000 email notifications free forever — $0.00</li>
+    <li><strong>CloudWatch alarm:</strong> First 10 alarms free forever — $0.00</li>
+  </ul>
+
+  <p>Phase 3 adds effectively <strong>zero cost</strong> to the project while making it operationally production-grade.</p>
+
+  <h2>The live result</h2>
+
+  <div class="callout success">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <p><strong>What happens now when a ticket is submitted:</strong></p>
+      <p>1. Ticket is saved to DynamoDB with auto-assigned category and priority</p>
+      <p>2. An email lands in the IT team's inbox within seconds</p>
+      <p>3. The dashboard updates on next refresh (every 30 seconds)</p>
+      <p>4. If the monthly AWS bill ever exceeds $2, another email goes out immediately</p>
+    </div>
+  </div>
+
+  <h2>Phase 3 checklist</h2>
+  <ul class="checklist">
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> SES email address verified in ca-central-1</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Lambda IAM role updated with ses:SendEmail permission</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> send_alert_email() function added with graceful degradation</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> DynamoDB write happens before email call — correct ordering</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Keyword lists expanded — Intune, Teams, Outlook, phishing, MFA, Azure</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Security category added for phishing and malware reports</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> End-to-end email test — alert received in inbox within seconds</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> SNS billing topic created in us-east-1</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Email subscription confirmed for billing alerts</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> CloudWatch billing alarm set at $2 USD threshold</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> All code committed to GitHub</li>
+  </ul>
+
+  <h2>What's next</h2>
+  <p>Phase 4: GitHub Actions CI/CD pipeline. Right now every code change requires manually zipping and deploying Lambda, and manually uploading files to S3. After Phase 4, pushing to GitHub triggers automatic deployment — the way every real engineering team ships code.</p>
+
+  <a class="next-link" href="#">Phase 4: GitHub Actions CI/CD →</a>
+
+  <div class="callout">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <p><strong>All code is open source:</strong> <a href="https://github.com/DhaivatGohel/aws-it-ticket-system">github.com/DhaivatGohel/aws-it-ticket-system</a></p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div style="margin-bottom: 0.5rem;">Dhaivat Gohel · AWS IT Ticket Triage System Build Log</div>
+  <div>AWS Certified Cloud Practitioner · SAA candidate · Toronto, ON</div>
+</footer>
+
+</body>
+</html>
