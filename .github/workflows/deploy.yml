@@ -1,0 +1,55 @@
+name: Deploy to AWS
+
+# This workflow runs every time code is pushed to the main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    # GitHub spins up a fresh Ubuntu Linux machine to run these steps
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 — Download your repo code onto the Linux machine
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2 — Install and configure the AWS CLI using your GitHub Secrets
+      # This is how GitHub Actions authenticates with your AWS account
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Step 3 — Deploy frontend files to S3
+      # aws s3 sync uploads everything in frontend/ to your S3 bucket
+      # --delete removes any files in S3 that no longer exist locally
+      - name: Deploy frontend to S3
+        run: |
+          aws s3 sync frontend/ s3://${{ secrets.S3_BUCKET }} \
+            --delete \
+            --exclude "*.DS_Store"
+
+      # Step 4 — Invalidate CloudFront cache
+      # Forces CloudFront to fetch fresh files from S3 immediately
+      # Without this, visitors might see the old cached version for hours
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      # Step 5 — Package and deploy Lambda function
+      # zip packages the Python file, then we upload it to Lambda
+      - name: Deploy Lambda function
+        run: |
+          cd lambda
+          zip triage_function.zip triage_function.py
+          aws lambda update-function-code \
+            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+            --zip-file fileb://triage_function.zip \
+            --region ${{ secrets.AWS_REGION }}
