@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" font-family="'IBM Plex Mono', monospace">
+  <rect width="900" height="520" fill="#0e0f11" rx="12"/>
+
+  <!-- Title -->
+  <text x="450" y="40" text-anchor="middle" fill="#e8e9eb" font-size="15" font-weight="500">AWS IT Ticket Triage System — Architecture</text>
+  <text x="450" y="60" text-anchor="middle" fill="#7a7f8a" font-size="11">ca-central-1 (Montreal) · Serverless · Always-on HTTPS</text>
+
+  <!-- ── USER ── -->
+  <rect x="30" y="100" width="110" height="60" rx="8" fill="#1e2128" stroke="#2a2d35" stroke-width="1"/>
+  <text x="85" y="125" text-anchor="middle" fill="#7a7f8a" font-size="9">USER</text>
+  <text x="85" y="142" text-anchor="middle" fill="#e8e9eb" font-size="11">Browser</text>
+  <text x="85" y="156" text-anchor="middle" fill="#7a7f8a" font-size="9">Submit ticket</text>
+
+  <!-- Arrow: Browser → CloudFront -->
+  <line x1="140" y1="130" x2="185" y2="130" stroke="#2a2d35" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="162" y="123" text-anchor="middle" fill="#7a7f8a" font-size="9">HTTPS</text>
+
+  <!-- ── CLOUDFRONT ── -->
+  <rect x="185" y="100" width="120" height="60" rx="8" fill="#1a2535" stroke="rgba(74,158,255,0.35)" stroke-width="1"/>
+  <text x="245" y="120" text-anchor="middle" fill="#4a9eff" font-size="9">AWS</text>
+  <text x="245" y="135" text-anchor="middle" fill="#4a9eff" font-size="12">CloudFront</text>
+  <text x="245" y="151" text-anchor="middle" fill="#7a7f8a" font-size="9">CDN · HTTPS · Edge</text>
+
+  <!-- Arrow: CloudFront → S3 -->
+  <line x1="245" y1="160" x2="245" y2="210" stroke="#2a2d35" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="260" y="190" fill="#7a7f8a" font-size="9">OAC</text>
+
+  <!-- ── S3 ── -->
+  <rect x="185" y="210" width="120" height="60" rx="8" fill="#1e2128" stroke="#2a2d35" stroke-width="1"/>
+  <text x="245" y="230" text-anchor="middle" fill="#7a7f8a" font-size="9">AWS</text>
+  <text x="245" y="245" text-anchor="middle" fill="#e8e9eb" font-size="12">S3 Bucket</text>
+  <text x="245" y="261" text-anchor="middle" fill="#7a7f8a" font-size="9">HTML · CSS · JS</text>
+
+  <!-- Arrow: CloudFront → API Gateway -->
+  <line x1="305" y1="130" x2="365" y2="130" stroke="#2a2d35" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="335" y="123" text-anchor="middle" fill="#7a7f8a" font-size="9">POST/GET</text>
+
+  <!-- ── API GATEWAY ── -->
+  <rect x="365" y="100" width="130" height="60" rx="8" fill="#1e2535" stroke="rgba(192,132,252,0.35)" stroke-width="1"/>
+  <text x="430" y="120" text-anchor="middle" fill="#c084fc" font-size="9">AWS</text>
+  <text x="430" y="135" text-anchor="middle" fill="#c084fc" font-size="12">API Gateway</text>
+  <text x="430" y="151" text-anchor="middle" fill="#7a7f8a" font-size="9">REST · /tickets</text>
+
+  <!-- Arrow: API Gateway → Lambda -->
+  <line x1="495" y1="130" x2="555" y2="130" stroke="#2a2d35" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="525" y="123" text-anchor="middle" fill="#7a7f8a" font-size="9">Invoke</text>
+
+  <!-- ── LAMBDA ── -->
+  <rect x="555" y="90" width="140" height="80" rx="8" fill="#1e2820" stroke="rgba(62,207,110,0.35)" stroke-width="1"/>
+  <text x="625" y="112" text-anchor="middle" fill="#3ecf6e" font-size="9">AWS</text>
+  <text x="625" y="127" text-anchor="middle" fill="#3ecf6e" font-size="12">Lambda</text>
+  <text x="625" y="143" text-anchor="middle" fill="#7a7f8a" font-size="9">Python 3.12</text>
+  <text x="625" y="157" text-anchor="middle" fill="#7a7f8a" font-size="9">Triage · Categorize</text>
+
+  <!-- Arrow: Lambda → DynamoDB -->
+  <line x1="695" y1="130" x2="755" y2="130" stroke="#2a2d35" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="725" y="123" text-anchor="middle" fill="#7a7f8a" font-size="9">PutItem</text>
+
+  <!-- ── DYNAMODB ── -->
+  <rect x="755" y="100" width="120" height="60" rx="8" fill="#25201a" stroke="rgba(240,192,96,0.35)" stroke-width="1"/>
+  <text x="815" y="120" text-anchor="middle" fill="#f0c060" font-size="9">AWS</text>
+  <text x="815" y="135" text-anchor="middle" fill="#f0c060" font-size="12">DynamoDB</text>
+  <text x="815" y="151" text-anchor="middle" fill="#7a7f8a" font-size="9">it-tickets table</text>
+
+  <!-- Arrow: Lambda → SES (downward) -->
+  <line x1="625" y1="170" x2="625" y2="230" stroke="#2a2d35" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="642" y="205" fill="#7a7f8a" font-size="9">SendEmail</text>
+
+  <!-- ── SES ── -->
+  <rect x="555" y="230" width="140" height="60" rx="8" fill="#251a1a" stroke="rgba(255,107,107,0.35)" stroke-width="1"/>
+  <text x="625" y="250" text-anchor="middle" fill="#ff6b6b" font-size="9">AWS</text>
+  <text x="625" y="265" text-anchor="middle" fill="#ff6b6b" font-size="12">SES</text>
+  <text x="625" y="281" text-anchor="middle" fill="#7a7f8a" font-size="9">Email alerts</text>
+
+  <!-- Arrow: SES → IT Team -->
+  <line x1="695" y1="260" x2="755" y2="260" stroke="#2a2d35" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ── IT TEAM ── -->
+  <rect x="755" y="230" width="120" height="60" rx="8" fill="#1e2128" stroke="#2a2d35" stroke-width="1"/>
+  <text x="815" y="254" text-anchor="middle" fill="#7a7f8a" font-size="9">IT TEAM</text>
+  <text x="815" y="269" text-anchor="middle" fill="#e8e9eb" font-size="11">Inbox</text>
+  <text x="815" y="284" text-anchor="middle" fill="#7a7f8a" font-size="9">Alert email</text>
+
+  <!-- ── BOTTOM ROW: IAM + CloudWatch + GitHub Actions ── -->
+
+  <!-- IAM -->
+  <rect x="185" y="360" width="120" height="60" rx="8" fill="#1e2128" stroke="#2a2d35" stroke-width="1"/>
+  <text x="245" y="380" text-anchor="middle" fill="#7a7f8a" font-size="9">AWS</text>
+  <text x="245" y="395" text-anchor="middle" fill="#e8e9eb" font-size="12">IAM</text>
+  <text x="245" y="411" text-anchor="middle" fill="#7a7f8a" font-size="9">Least-privilege</text>
+
+  <!-- CloudWatch -->
+  <rect x="365" y="360" width="130" height="60" rx="8" fill="#1e2128" stroke="#2a2d35" stroke-width="1"/>
+  <text x="430" y="380" text-anchor="middle" fill="#7a7f8a" font-size="9">AWS</text>
+  <text x="430" y="395" text-anchor="middle" fill="#e8e9eb" font-size="12">CloudWatch</text>
+  <text x="430" y="411" text-anchor="middle" fill="#7a7f8a" font-size="9">Billing alarm · Logs</text>
+
+  <!-- GitHub Actions -->
+  <rect x="555" y="360" width="140" height="60" rx="8" fill="#1e2128" stroke="#2a2d35" stroke-width="1"/>
+  <text x="625" y="380" text-anchor="middle" fill="#7a7f8a" font-size="9">CI/CD</text>
+  <text x="625" y="395" text-anchor="middle" fill="#e8e9eb" font-size="12">GitHub Actions</text>
+  <text x="625" y="411" text-anchor="middle" fill="#7a7f8a" font-size="9">Auto-deploy on push</text>
+
+  <!-- SNS -->
+  <rect x="755" y="360" width="120" height="60" rx="8" fill="#1e2128" stroke="#2a2d35" stroke-width="1"/>
+  <text x="815" y="380" text-anchor="middle" fill="#7a7f8a" font-size="9">AWS</text>
+  <text x="815" y="395" text-anchor="middle" fill="#e8e9eb" font-size="12">SNS</text>
+  <text x="815" y="411" text-anchor="middle" fill="#7a7f8a" font-size="9">Billing notifications</text>
+
+  <!-- Bottom section label -->
+  <text x="450" y="345" text-anchor="middle" fill="#2a2d35" font-size="10">─────────────────────── Supporting Services ───────────────────────</text>
+
+  <!-- Footer -->
+  <text x="450" y="490" text-anchor="middle" fill="#2a2d35" font-size="10">github.com/DhaivatGohel/aws-it-ticket-system · ca-central-1</text>
+
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L6,3 z" fill="#2a2d35"/>
+    </marker>
+  </defs>
+</svg>
