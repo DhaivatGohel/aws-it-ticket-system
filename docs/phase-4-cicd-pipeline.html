@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Phase 4: CI/CD Pipeline — AWS IT Ticket Triage System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --bg: #0e0f11; --surface: #16181c; --surface2: #1e2128; --border: #2a2d35; --text: #e8e9eb; --muted: #7a7f8a; --accent: #4a9eff; --accent2: #f0c060; --green: #3ecf6e; --red: #ff6b6b; --purple: #c084fc; --code-bg: #12141a; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+  header { border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(14,15,17,0.92); backdrop-filter: blur(8px); z-index: 100; }
+  .site-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: 0.04em; text-decoration: none; }
+  .header-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); padding: 3px 10px; border-radius: 4px; }
+  .hero { max-width: 780px; margin: 0 auto; padding: 5rem 2rem 3rem; }
+  .phase-tag { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
+  .phase-tag::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--accent2); }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(2.2rem, 5vw, 3.2rem); line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1.5rem; color: #f0f1f3; }
+  .hero-meta { display: flex; align-items: center; gap: 1.5rem; font-size: 13px; color: var(--muted); margin-bottom: 2.5rem; flex-wrap: wrap; }
+  .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+  .hero-desc { font-size: 19px; color: #9da3b0; line-height: 1.7; border-left: 2px solid var(--accent); padding-left: 1.25rem; font-style: italic; font-family: 'Fraunces', serif; font-weight: 300; }
+  .services-strip { max-width: 780px; margin: 0 auto; padding: 0 2rem 3rem; display: flex; flex-wrap: wrap; gap: 8px; }
+  .svc-badge { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); background: rgba(74,158,255,0.08); border: 1px solid rgba(74,158,255,0.2); padding: 4px 10px; border-radius: 4px; letter-spacing: 0.03em; }
+  .divider { max-width: 780px; margin: 0 auto; padding: 0 2rem; border-top: 1px solid var(--border); margin-bottom: 3.5rem; }
+  .body { max-width: 780px; margin: 0 auto; padding: 0 2rem 6rem; }
+  h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.65rem; color: #f0f1f3; margin: 3.5rem 0 1rem; letter-spacing: -0.01em; line-height: 1.25; }
+  h3 { font-family: 'DM Sans', sans-serif; font-weight: 500; color: var(--accent2); margin: 2.5rem 0 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; font-size: 12px; }
+  p { margin-bottom: 1.25rem; color: #9da3b0; }
+  p strong { color: var(--text); font-weight: 500; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem 1.75rem; margin: 2rem 0; }
+  .step-number { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  .step-title { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 1.05rem; color: var(--text); margin-bottom: 1rem; }
+  .step p { margin-bottom: 0.75rem; }
+  .step p:last-child { margin-bottom: 0; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem 1.25rem; overflow-x: auto; margin: 1.25rem 0; font-size: 13.5px; }
+  code { font-family: 'IBM Plex Mono', monospace; color: #c9d1e0; font-size: 13.5px; }
+  p code, li code { background: var(--surface2); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 13px; color: #b8c5d8; }
+  .kw { color: #79b8ff; } .str { color: #9ecbff; } .cm { color: #586069; font-style: italic; } .val { color: var(--green); } .cmd { color: var(--accent2); } .key { color: #e2a4ff; } .fn { color: #b392f0; }
+  .callout { display: flex; gap: 1rem; background: rgba(74,158,255,0.06); border: 1px solid rgba(74,158,255,0.18); border-radius: 8px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+  .callout.warn { background: rgba(240,192,96,0.06); border-color: rgba(240,192,96,0.2); }
+  .callout.success { background: rgba(62,207,110,0.06); border-color: rgba(62,207,110,0.2); }
+  .callout.danger { background: rgba(255,107,107,0.06); border-color: rgba(255,107,107,0.2); }
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { font-size: 14.5px; color: #8d95a5; line-height: 1.6; }
+  .callout-body strong { color: var(--text); }
+  .callout-body p { margin-bottom: 0.4rem; color: #8d95a5; }
+  .callout-body p:last-child { margin-bottom: 0; }
+  .analogy { background: var(--surface); border-left: 3px solid var(--accent2); border-radius: 0 8px 8px 0; padding: 1.25rem 1.5rem; margin: 1.5rem 0; }
+  .analogy-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--accent2); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .analogy p { color: #8d95a5; font-size: 15px; margin-bottom: 0; }
+  .analogy p strong { color: var(--text); }
+  .output { background: #0a0c0f; border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 8px; padding: 1.1rem 1.25rem; margin: 1.25rem 0; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #7dc89a; line-height: 1.6; }
+  .insight { background: var(--surface); border-top: 2px solid var(--accent2); border-radius: 0 0 8px 8px; padding: 1.25rem 1.5rem; margin: 2rem 0; }
+  .insight-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--accent2); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .insight p { color: #8d95a5; font-size: 14.5px; margin-bottom: 0; }
+  .insight p strong { color: var(--text); }
+
+  /* Pipeline flow */
+  .pipeline { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 2rem; margin: 2rem 0; }
+  .pipeline-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1.5rem; }
+  .pipeline-steps { display: flex; flex-direction: column; gap: 0; }
+  .pipeline-step { display: flex; align-items: flex-start; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border); }
+  .pipeline-step:last-child { border-bottom: none; }
+  .pipeline-num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .pipeline-content { flex: 1; }
+  .pipeline-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .pipeline-desc { font-size: 13px; color: var(--muted); }
+
+  /* Before/after comparison */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 1.5rem 0; }
+  .compare-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+  .compare-box.before { border-color: rgba(255,107,107,0.25); }
+  .compare-box.after { border-color: rgba(62,207,110,0.25); }
+  .compare-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.75rem; }
+  .compare-box.before .compare-label { color: var(--red); }
+  .compare-box.after .compare-label { color: var(--green); }
+  .compare-box ul { padding-left: 1rem; margin-bottom: 0; }
+  .compare-box ul li { font-size: 13.5px; color: #8d95a5; margin-bottom: 0.3rem; }
+
+  /* Security incident box */
+  .incident { background: rgba(255,107,107,0.04); border: 1px solid rgba(255,107,107,0.2); border-radius: 10px; padding: 1.5rem 1.75rem; margin: 2rem 0; }
+  .incident-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--red); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.75rem; }
+  .incident p { color: #8d95a5; font-size: 14.5px; margin-bottom: 0.5rem; }
+  .incident p:last-child { margin-bottom: 0; }
+  .incident p strong { color: var(--text); }
+
+  /* Run result */
+  .run-result { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 2rem 0; }
+  .run-header { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 0.75rem 1.25rem; display: flex; align-items: center; gap: 10px; }
+  .run-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+  .run-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .run-meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-left: auto; }
+  .run-steps { padding: 0.5rem 0; }
+  .run-step { display: flex; align-items: center; gap: 10px; padding: 0.5rem 1.25rem; font-size: 13px; color: #8d95a5; font-family: 'IBM Plex Mono', monospace; }
+  .run-step-icon { color: var(--green); flex-shrink: 0; }
+
+  .checklist { list-style: none; margin: 1.5rem 0; display: flex; flex-direction: column; gap: 10px; }
+  .checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: #8d95a5; }
+  .check { width: 18px; height: 18px; border-radius: 50%; background: rgba(62,207,110,0.15); border: 1px solid rgba(62,207,110,0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .check svg { width: 10px; height: 10px; stroke: var(--green); fill: none; stroke-width: 2.5; }
+  .next-link { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1.25rem; color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-decoration: none; margin-bottom: 2rem; transition: border-color 0.15s; }
+  .next-link:hover { border-color: var(--accent); text-decoration: none; }
+  ul { padding-left: 1.25rem; margin-bottom: 1.25rem; }
+  ul li { color: #9da3b0; margin-bottom: 0.4rem; font-size: 15.5px; }
+  footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; text-align: center; font-size: 13px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  @media (max-width: 600px) { header { padding: 1rem; } .hero, .body, .services-strip, .divider { padding-left: 1.25rem; padding-right: 1.25rem; } .compare { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="site-name" href="#">dsgohel / aws-build-log</a>
+  <span class="header-tag">ca-central-1</span>
+</header>
+
+<div class="hero">
+  <div class="phase-tag">Phase 4</div>
+  <h1>CI/CD Pipeline: From Manual Deployments to Push-to-Deploy in 18 Seconds</h1>
+  <div class="hero-meta">
+    <span>Dhaivat Gohel</span>
+    <div class="dot"></div>
+    <span>April 2026</span>
+    <div class="dot"></div>
+    <span>9 min read</span>
+  </div>
+  <p class="hero-desc">Every code change used to mean 4–5 manual terminal commands. After Phase 4, it means one git push. GitHub Actions handles the rest — automatically, reliably, in under 20 seconds.</p>
+</div>
+
+<div class="services-strip">
+  <span class="svc-badge">GitHub Actions</span>
+  <span class="svc-badge">IAM</span>
+  <span class="svc-badge">S3</span>
+  <span class="svc-badge">CloudFront</span>
+  <span class="svc-badge">Lambda</span>
+  <span class="svc-badge">CI/CD</span>
+</div>
+
+<div class="divider"></div>
+
+<div class="body">
+
+  <h2>The problem with manual deployments</h2>
+  <p>Before Phase 4, deploying any change to this project required running 4–5 commands manually every single time:</p>
+
+  <div class="compare">
+    <div class="compare-box before">
+      <div class="compare-label">Before — manual deployment</div>
+      <ul>
+        <li>Edit code locally</li>
+        <li>Open PowerShell, zip Lambda manually</li>
+        <li>Run aws lambda update-function-code</li>
+        <li>Run aws s3 cp for each changed file</li>
+        <li>Run aws cloudfront create-invalidation</li>
+        <li>Hope you didn't forget a step</li>
+      </ul>
+    </div>
+    <div class="compare-box after">
+      <div class="compare-label">After — automated pipeline</div>
+      <ul>
+        <li>Edit code locally</li>
+        <li>git push origin main</li>
+        <li>Done — everything else is automatic</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>Manual deployments are slow, error-prone, and don't scale. In a real engineering team, nobody deploys by hand — every company from a 5-person startup to a bank uses a CI/CD pipeline. Building one from scratch is a core DevOps skill.</p>
+
+  <div class="analogy">
+    <div class="analogy-label">Plain English</div>
+    <p>CI/CD is like a <strong>factory assembly line.</strong> Before it existed, every car was hand-built from scratch by one person doing every step. The assembly line breaks it into automated steps that run in sequence — faster, more consistent, and less error-prone. GitHub Actions is your assembly line for code deployments.</p>
+  </div>
+
+  <h2>What CI/CD actually means</h2>
+  <p><strong>CI — Continuous Integration:</strong> Every time you push code, it's automatically tested and validated. Catches bugs before they reach production.</p>
+  <p><strong>CD — Continuous Deployment:</strong> Every time you push to main, the code is automatically deployed to production. No manual steps, no human error.</p>
+  <p>For this project we're focused on CD — automatic deployment on push. The pipeline deploys the frontend to S3, invalidates the CloudFront cache, and redeploys the Lambda function every time code changes.</p>
+
+  <h2>Step 4.1 — Dedicated IAM user for GitHub Actions</h2>
+  <p>GitHub Actions needs AWS credentials to deploy on your behalf. The wrong approach would be using your personal <code>dsgohel</code> credentials — that user has full AdministratorAccess to your entire AWS account. If those credentials leaked through GitHub, an attacker could do anything.</p>
+  <p>Instead, a dedicated <code>github-actions-deploy</code> IAM user was created with exactly three permissions:</p>
+
+  <ul>
+    <li><strong>S3</strong> — PutObject, GetObject, DeleteObject, ListBucket on the ticket system bucket only</li>
+    <li><strong>CloudFront</strong> — CreateInvalidation on this specific distribution only</li>
+    <li><strong>Lambda</strong> — UpdateFunctionCode on this specific function only</li>
+  </ul>
+
+  <p>Nothing else. Not IAM management, not DynamoDB, not SES, not any other S3 bucket. This is least-privilege applied to CI/CD — a pattern every security-conscious engineering team uses.</p>
+
+  <h2>A security incident — and why it matters</h2>
+
+  <div class="incident">
+    <div class="incident-label">Security incident — documented honestly</div>
+    <p>During setup, the <code>aws iam create-access-key</code> output was accidentally pasted into this build log — exposing the <code>AccessKeyId</code> and <code>SecretAccessKey</code> in plain text.</p>
+    <p><strong>The response was immediate:</strong> the exposed keys were deleted within minutes using <code>aws iam delete-access-key</code>, and fresh credentials were generated before proceeding.</p>
+    <p>This is the correct response to a credential exposure. AWS access keys starting with <code>AKIA</code> are actively scanned for by bots on GitHub, chat logs, and public forums. Exposed credentials have been used to spin up hundreds of EC2 instances for crypto mining within minutes — resulting in bills of thousands of dollars.</p>
+    <p><strong>The lesson:</strong> never paste credentials into any interface that isn't a secrets manager. If it happens — rotate immediately, no exceptions. Document it, learn from it, move on.</p>
+  </div>
+
+  <h2>Step 4.2 — GitHub Secrets</h2>
+  <p>GitHub Secrets are encrypted key-value pairs stored separately from your code. Your workflow file references them by name — the actual values are never visible in the repository, never in logs, never anywhere public.</p>
+
+  <p>Six secrets were configured for this pipeline:</p>
+
+  <pre><code>AWS_ACCESS_KEY_ID          <span class="cm"># github-actions-deploy credentials</span>
+AWS_SECRET_ACCESS_KEY      <span class="cm"># github-actions-deploy credentials</span>
+AWS_REGION                 <span class="cm"># ca-central-1</span>
+S3_BUCKET                  <span class="cm"># aws-it-ticket-system-dsgohel</span>
+CLOUDFRONT_DISTRIBUTION_ID <span class="cm"># the CloudFront distribution ID</span>
+LAMBDA_FUNCTION_NAME       <span class="cm"># it-ticket-triage</span></code></pre>
+
+  <div class="step">
+    <div class="step-number">DECISION</div>
+    <div class="step-title">Why secrets for non-sensitive values like bucket name?</div>
+    <p>The S3 bucket name and Lambda function name aren't credentials — they're not sensitive in the same way. But storing them as secrets means the workflow file contains zero hardcoded values. If you ever rename a resource, you update one secret in GitHub — not the workflow file. It also means the workflow file is completely portable and reusable across environments.</p>
+  </div>
+
+  <h2>Step 4.3 — The workflow file</h2>
+  <p>The workflow file lives at <code>.github/workflows/deploy.yml</code>. GitHub automatically detects and runs any YAML files in that folder. Here's the complete file with every line explained:</p>
+
+  <pre><code><span class="cm"># The name shown in the GitHub Actions UI</span>
+<span class="key">name</span>: <span class="val">Deploy to AWS</span>
+
+<span class="cm"># Trigger: run this workflow on every push to main</span>
+<span class="key">on</span>:
+  <span class="key">push</span>:
+    <span class="key">branches</span>:
+      - <span class="val">main</span>
+
+<span class="key">jobs</span>:
+  <span class="key">deploy</span>:
+    <span class="cm"># GitHub spins up a fresh Ubuntu Linux VM for each run</span>
+    <span class="key">runs-on</span>: <span class="val">ubuntu-latest</span>
+
+    <span class="key">steps</span>:
+      <span class="cm"># Step 1 — download your repo onto the Linux VM</span>
+      - <span class="key">name</span>: <span class="val">Checkout code</span>
+        <span class="key">uses</span>: <span class="val">actions/checkout@v4</span>
+
+      <span class="cm"># Step 2 — install AWS CLI and inject your credentials</span>
+      - <span class="key">name</span>: <span class="val">Configure AWS credentials</span>
+        <span class="key">uses</span>: <span class="val">aws-actions/configure-aws-credentials@v4</span>
+        <span class="key">with</span>:
+          <span class="key">aws-access-key-id</span>:     <span class="str">${{ secrets.AWS_ACCESS_KEY_ID }}</span>
+          <span class="key">aws-secret-access-key</span>: <span class="str">${{ secrets.AWS_SECRET_ACCESS_KEY }}</span>
+          <span class="key">aws-region</span>:            <span class="str">${{ secrets.AWS_REGION }}</span>
+
+      <span class="cm"># Step 3 — sync frontend/ folder to S3</span>
+      <span class="cm"># --delete removes files in S3 that no longer exist locally</span>
+      - <span class="key">name</span>: <span class="val">Deploy frontend to S3</span>
+        <span class="key">run</span>: |
+          aws s3 sync frontend/ s3://<span class="str">${{ secrets.S3_BUCKET }}</span> \
+            --delete \
+            --exclude <span class="str">"*.DS_Store"</span>
+
+      <span class="cm"># Step 4 — tell CloudFront to serve fresh files immediately</span>
+      - <span class="key">name</span>: <span class="val">Invalidate CloudFront cache</span>
+        <span class="key">run</span>: |
+          aws cloudfront create-invalidation \
+            --distribution-id <span class="str">${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}</span> \
+            --paths <span class="str">"/*"</span>
+
+      <span class="cm"># Step 5 — zip and redeploy the Lambda function</span>
+      - <span class="key">name</span>: <span class="val">Deploy Lambda function</span>
+        <span class="key">run</span>: |
+          cd lambda
+          zip triage_function.zip triage_function.py
+          aws lambda update-function-code \
+            --function-name <span class="str">${{ secrets.LAMBDA_FUNCTION_NAME }}</span> \
+            --zip-file fileb://triage_function.zip \
+            --region <span class="str">${{ secrets.AWS_REGION }}</span></code></pre>
+
+  <div class="pipeline">
+    <div class="pipeline-label">What happens on every git push to main</div>
+    <div class="pipeline-steps">
+      <div class="pipeline-step">
+        <div class="pipeline-num">1</div>
+        <div class="pipeline-content">
+          <div class="pipeline-title">Checkout code</div>
+          <div class="pipeline-desc">GitHub spins up a fresh Ubuntu VM and downloads your repo onto it</div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">2</div>
+        <div class="pipeline-content">
+          <div class="pipeline-title">Configure AWS credentials</div>
+          <div class="pipeline-desc">Injects the GitHub Secrets as environment variables so AWS CLI can authenticate</div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">3</div>
+        <div class="pipeline-content">
+          <div class="pipeline-title">Deploy frontend to S3</div>
+          <div class="pipeline-desc">Syncs the frontend/ folder to S3 — only uploads changed files, deletes removed ones</div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">4</div>
+        <div class="pipeline-content">
+          <div class="pipeline-title">Invalidate CloudFront cache</div>
+          <div class="pipeline-desc">Forces all edge locations to fetch fresh files from S3 immediately</div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">5</div>
+        <div class="pipeline-content">
+          <div class="pipeline-title">Deploy Lambda function</div>
+          <div class="pipeline-desc">Zips the Python file and uploads it to Lambda — new code live in seconds</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>The end-to-end test</h2>
+  <p>To prove the pipeline works, a single line of HTML was changed locally and pushed:</p>
+
+  <pre><code><span class="cm"># Before</span>
+Tickets are automatically categorized and prioritized.
+
+<span class="cm"># After</span>
+Tickets are automatically categorized, prioritized, and escalated via email.</code></pre>
+
+  <p>One <code>git push</code> later, GitHub Actions triggered automatically:</p>
+
+  <div class="run-result">
+    <div class="run-header">
+      <div class="run-dot"></div>
+      <div class="run-title">feat: update subtitle to reflect email alerting</div>
+      <div class="run-meta">18s</div>
+    </div>
+    <div class="run-steps">
+      <div class="run-step"><span class="run-step-icon">✓</span> Checkout code</div>
+      <div class="run-step"><span class="run-step-icon">✓</span> Configure AWS credentials</div>
+      <div class="run-step"><span class="run-step-icon">✓</span> Deploy frontend to S3</div>
+      <div class="run-step"><span class="run-step-icon">✓</span> Invalidate CloudFront cache</div>
+      <div class="run-step"><span class="run-step-icon">✓</span> Deploy Lambda function</div>
+    </div>
+  </div>
+
+  <p>18 seconds from push to live. The updated subtitle appeared on the site immediately after a hard refresh. No manual steps, no terminal commands, no room for human error.</p>
+
+  <div class="insight">
+    <div class="insight-label">Engineering insight</div>
+    <p><strong>The pipeline always deploys both frontend and Lambda</strong> — even if only one changed. This is simpler and more reliable than trying to detect which files changed and running conditional steps. At this scale, a few extra seconds of deployment time is worth the reduction in complexity. In a larger project with longer build times, you'd add path filters to only deploy what changed.</p>
+  </div>
+
+  <div class="callout success">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <p><strong>Two successful pipeline runs:</strong></p>
+      <p>Run #1 — pipeline creation — 12 seconds</p>
+      <p>Run #2 — subtitle change auto-deployed — 18 seconds</p>
+    </div>
+  </div>
+
+  <h2>Phase 4 checklist</h2>
+  <ul class="checklist">
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> github-actions-deploy IAM user created with least-privilege policy</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Exposed credentials identified, deleted, and rotated immediately</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> 6 GitHub Secrets configured — no hardcoded values in workflow file</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> deploy.yml workflow file created with 5 automated steps</div></li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> First pipeline run — green on push — 12 seconds</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> End-to-end test — HTML change live on CloudFront in 18 seconds</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> All code committed to GitHub</li>
+  </ul>
+
+  <h2>What's next</h2>
+  <p>Phase 5: the final polish. A professional README with architecture diagram, a CloudWatch dashboard screenshot for the portfolio, and everything wrapped up for the resume. The project is functionally complete — Phase 5 makes it portfolio-ready.</p>
+
+  <a class="next-link" href="#">Phase 5: README + Architecture Diagram + Portfolio Polish →</a>
+
+  <div class="callout">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <p><strong>All code is open source:</strong> <a href="https://github.com/DhaivatGohel/aws-it-ticket-system">github.com/DhaivatGohel/aws-it-ticket-system</a></p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div style="margin-bottom: 0.5rem;">Dhaivat Gohel · AWS IT Ticket Triage System Build Log</div>
+  <div>AWS Certified Cloud Practitioner · SAA candidate · Toronto, ON</div>
+</footer>
+
+</body>
+</html>
