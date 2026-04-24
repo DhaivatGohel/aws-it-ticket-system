@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Build Log — AWS IT Ticket Triage System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --bg: #0e0f11; --surface: #16181c; --surface2: #1e2128; --border: #2a2d35; --text: #e8e9eb; --muted: #7a7f8a; --accent: #4a9eff; --accent2: #f0c060; --green: #3ecf6e; --code-bg: #12141a; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+  header { border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(14,15,17,0.92); backdrop-filter: blur(8px); z-index: 100; }
+  .site-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: 0.04em; text-decoration: none; }
+  .header-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); padding: 3px 10px; border-radius: 4px; }
+  .hero { max-width: 780px; margin: 0 auto; padding: 5rem 2rem 3rem; }
+  .tag { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
+  .tag::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--accent2); }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(2.4rem, 5vw, 3.4rem); line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 1.5rem; color: #f0f1f3; }
+  .hero-meta { display: flex; align-items: center; gap: 1.5rem; font-size: 13px; color: var(--muted); margin-bottom: 2rem; flex-wrap: wrap; }
+  .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+  .hero-desc { font-size: 18px; color: #9da3b0; line-height: 1.7; max-width: 600px; }
+  .hero-desc a { color: var(--accent); text-decoration: none; }
+  .hero-desc a:hover { text-decoration: underline; }
+
+  /* Live badge */
+  .live-row { display: flex; gap: 10px; margin-top: 2rem; flex-wrap: wrap; }
+  .live-badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(62,207,110,0.1); border: 1px solid rgba(62,207,110,0.25); border-radius: 20px; padding: 5px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--green); text-decoration: none; transition: border-color 0.15s; }
+  .live-badge:hover { border-color: var(--green); }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .repo-badge { display: inline-flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); text-decoration: none; transition: border-color 0.15s; }
+  .repo-badge:hover { border-color: var(--accent); color: var(--accent); }
+
+  .divider { max-width: 780px; margin: 3rem auto 0; padding: 0 2rem; border-top: 1px solid var(--border); }
+
+  /* Phase cards */
+  .phases { max-width: 780px; margin: 0 auto; padding: 3rem 2rem 6rem; display: flex; flex-direction: column; gap: 1px; }
+  .phases-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem; }
+
+  .phase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.75rem; margin-bottom: 12px; text-decoration: none; display: block; transition: border-color 0.15s, background 0.15s; position: relative; overflow: hidden; }
+  .phase-card:hover { border-color: var(--accent); background: #17191e; }
+  .phase-card::after { content: '→'; position: absolute; right: 1.75rem; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--border); transition: color 0.15s, right 0.15s; }
+  .phase-card:hover::after { color: var(--accent); right: 1.5rem; }
+
+  .phase-num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+  .phase-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.2rem; color: #f0f1f3; margin-bottom: 0.5rem; line-height: 1.3; }
+  .phase-desc { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 0.75rem; max-width: 560px; }
+  .phase-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .phase-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--accent); background: rgba(74,158,255,0.08); border: 1px solid rgba(74,158,255,0.15); padding: 2px 8px; border-radius: 4px; }
+
+  /* Stack summary */
+  .stack { max-width: 780px; margin: 0 auto; padding: 0 2rem 4rem; }
+  .stack-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem; }
+  .stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .stack-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+  .stack-service { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--text); font-weight: 500; margin-bottom: 4px; }
+  .stack-role { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+  footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; text-align: center; font-size: 13px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+
+  @media (max-width: 600px) { header { padding: 1rem; } .hero, .phases, .stack { padding-left: 1.25rem; padding-right: 1.25rem; } .phase-card::after { display: none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="site-name" href="#">dsgohel / aws-build-log</a>
+  <span class="header-tag">ca-central-1</span>
+</header>
+
+<div class="hero">
+  <div class="tag">Build Log</div>
+  <h1>AWS IT Ticket Triage System</h1>
+  <div class="hero-meta">
+    <span>Dhaivat Gohel</span>
+    <div class="dot"></div>
+    <span>2026</span>
+    <div class="dot"></div>
+    <span>5 phases · 9 AWS services · fully serverless</span>
+  </div>
+  <p class="hero-desc">
+    A real-world cloud engineering portfolio project — built from scratch, deployed on AWS, documented phase by phase. Every architectural decision is explained. Every tradeoff is documented. Every mistake is included.
+  </p>
+  <div class="live-row">
+    <a class="live-badge" href="https://d23mh63awvqncl.cloudfront.net" target="_blank">
+      <div class="live-dot"></div>
+      Live — ticket form
+    </a>
+    <a class="live-badge" href="https://d23mh63awvqncl.cloudfront.net/dashboard.html" target="_blank">
+      <div class="live-dot"></div>
+      Live — admin dashboard
+    </a>
+    <a class="repo-badge" href="https://github.com/DhaivatGohel/aws-it-ticket-system" target="_blank">
+      ↗ GitHub repo
+    </a>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="phases">
+  <div class="phases-label">Five phases — click to read</div>
+
+  <a class="phase-card" href="phase-0-environment-setup.html">
+    <div class="phase-num">PHASE 0</div>
+    <div class="phase-title">Environment Setup</div>
+    <div class="phase-desc">IAM user creation, AWS CLI configuration, GitHub repo setup, and project scaffolding. Why you never use root credentials and how to structure a cloud project from day one.</div>
+    <div class="phase-tags">
+      <span class="phase-tag">IAM</span>
+      <span class="phase-tag">AWS CLI</span>
+      <span class="phase-tag">Git</span>
+      <span class="phase-tag">GitHub</span>
+    </div>
+  </a>
+
+  <a class="phase-card" href="phase-1-s3-cloudfront.html">
+    <div class="phase-num">PHASE 1</div>
+    <div class="phase-title">S3 + CloudFront — A Live HTTPS Website for Effectively $0</div>
+    <div class="phase-desc">Static hosting with a private S3 bucket behind CloudFront using Origin Access Control. Why OAC replaced OAI, why PriceClass_100 makes sense for Canadian deployments, and the LocationConstraint quirk.</div>
+    <div class="phase-tags">
+      <span class="phase-tag">S3</span>
+      <span class="phase-tag">CloudFront</span>
+      <span class="phase-tag">OAC</span>
+      <span class="phase-tag">HTTPS</span>
+    </div>
+  </a>
+
+  <a class="phase-card" href="phase-2-lambda-dynamodb-api.html">
+    <div class="phase-num">PHASE 2</div>
+    <div class="phase-title">Lambda + DynamoDB + API Gateway — The Serverless Backend</div>
+    <div class="phase-desc">Python Lambda function with keyword-based triage logic, DynamoDB for ticket storage, API Gateway REST API, and a full CORS debugging session that every AWS developer will recognize.</div>
+    <div class="phase-tags">
+      <span class="phase-tag">Lambda</span>
+      <span class="phase-tag">DynamoDB</span>
+      <span class="phase-tag">API Gateway</span>
+      <span class="phase-tag">CORS</span>
+      <span class="phase-tag">Python</span>
+    </div>
+  </a>
+
+  <a class="phase-card" href="phase-3-ses-cloudwatch-billing.html">
+    <div class="phase-num">PHASE 3</div>
+    <div class="phase-title">SES + Billing Alarm — Alerting and Cost Control</div>
+    <div class="phase-desc">Automated email alerts via SES on every ticket submission, expanded triage keywords for real enterprise IT vocabulary, and a CloudWatch billing alarm with SNS notifications.</div>
+    <div class="phase-tags">
+      <span class="phase-tag">SES</span>
+      <span class="phase-tag">SNS</span>
+      <span class="phase-tag">CloudWatch</span>
+      <span class="phase-tag">Billing</span>
+    </div>
+  </a>
+
+  <a class="phase-card" href="phase-4-cicd-pipeline.html">
+    <div class="phase-num">PHASE 4</div>
+    <div class="phase-title">GitHub Actions CI/CD — Push to Deploy in 18 Seconds</div>
+    <div class="phase-desc">A dedicated least-privilege IAM user for GitHub Actions, encrypted GitHub Secrets, and a 5-step pipeline that automatically deploys frontend and Lambda on every push to main.</div>
+    <div class="phase-tags">
+      <span class="phase-tag">GitHub Actions</span>
+      <span class="phase-tag">CI/CD</span>
+      <span class="phase-tag">IAM</span>
+      <span class="phase-tag">Secrets</span>
+    </div>
+  </a>
+
+</div>
+
+<div class="divider"></div>
+
+<div class="stack">
+  <div class="stack-label" style="margin-top: 3rem;">Full AWS stack</div>
+  <div class="stack-grid">
+    <div class="stack-card"><div class="stack-service">S3</div><div class="stack-role">Static file storage, private origin</div></div>
+    <div class="stack-card"><div class="stack-service">CloudFront</div><div class="stack-role">CDN, HTTPS, edge caching</div></div>
+    <div class="stack-card"><div class="stack-service">API Gateway</div><div class="stack-role">REST API, HTTPS endpoint</div></div>
+    <div class="stack-card"><div class="stack-service">Lambda</div><div class="stack-role">Python 3.12 triage function</div></div>
+    <div class="stack-card"><div class="stack-service">DynamoDB</div><div class="stack-role">Serverless ticket storage</div></div>
+    <div class="stack-card"><div class="stack-service">SES</div><div class="stack-role">Email alerts to IT team</div></div>
+    <div class="stack-card"><div class="stack-service">CloudWatch</div><div class="stack-role">Metrics and billing alarm</div></div>
+    <div class="stack-card"><div class="stack-service">SNS</div><div class="stack-role">Billing notifications</div></div>
+    <div class="stack-card"><div class="stack-service">IAM</div><div class="stack-role">Least-privilege everywhere</div></div>
+  </div>
+</div>
+
+<footer>
+  <div style="margin-bottom: 0.5rem;">Dhaivat Gohel · AWS IT Ticket Triage System Build Log</div>
+  <div>AWS Certified Cloud Practitioner · SAA candidate · Toronto, ON</div>
+</footer>
+
+</body>
+</html>
