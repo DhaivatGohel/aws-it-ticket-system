@@ -19,14 +19,14 @@
       "Action": [
         "cloudfront:CreateInvalidation"
       ],
-      "Resource": "arn:aws:cloudfront::671391594873:distribution/E14LEG5C54VQZA"
+      "Resource": "arn:aws:cloudfront::[ACCOUNT-ID]:distribution/[DISTRIBUTION-ID]"
     },
     {
       "Effect": "Allow",
       "Action": [
         "lambda:UpdateFunctionCode"
       ],
-      "Resource": "arn:aws:lambda:ca-central-1:671391594873:function:it-ticket-triage"
+      "Resource": "arn:aws:lambda:ca-central-1:[ACCOUNT-ID]:function:it-ticket-triage"
     }
   ]
 }

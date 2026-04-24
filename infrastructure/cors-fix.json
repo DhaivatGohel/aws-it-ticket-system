@@ -1,6 +1,6 @@
 {
-  "restApiId": "vf9b38r06l",
-  "resourceId": "mwgeq9",
+  "restApiId": "[API-ID]",
+  "resourceId": "[RESOURCE-ID]",
   "httpMethod": "OPTIONS",
   "statusCode": "200",
   "responseParameters": {

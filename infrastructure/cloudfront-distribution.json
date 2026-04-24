@@ -6,7 +6,7 @@
       "Id": "s3-aws-it-ticket-system-dsgohel",
       "DomainName": "aws-it-ticket-system-dsgohel.s3.ca-central-1.amazonaws.com",
       "S3OriginConfig": {"OriginAccessIdentity": ""},
-      "OriginAccessControlId": "EPX1ETM4RCM1Q"
+      "OriginAccessControlId": "[OAC-ID]"
     }]
   },
   "DefaultCacheBehavior": {
