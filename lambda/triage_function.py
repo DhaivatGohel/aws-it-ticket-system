@@ -11,7 +11,9 @@ ses = boto3.client('ses', region_name='ca-central-1')
 
 # The email address that sends AND receives alerts
 # Both must be verified in SES while in sandbox mode
-ALERT_EMAIL = 'dhaivatgohel01@outlook.com'
+# In production, load this from an environment variable or AWS Secrets Manager.
+# e.g., os.environ.get('ALERT_EMAIL') or use boto3 to fetch from Parameter Store.
+ALERT_EMAIL = 'it-admin@company.com'  # Placeholder — configure via Lambda env var
 
 def categorize(description):
     text = description.lower()
