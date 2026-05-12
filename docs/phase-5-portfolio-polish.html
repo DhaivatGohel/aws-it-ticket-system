@@ -202,6 +202,12 @@
   </div>
 
   <p>The dashboard showed real data from the build — the invocation spike on April 1st when the system was built and tested, settling to periodic submissions afterward. Lambda duration peaked at 383ms (cold start + DynamoDB write + SES call) and dropped to ~2ms on warm invocations.</p>
+  
+  <img 
+    src="CloudWatch Dashboard.png" 
+    alt="CloudWatch dashboard showing Lambda invocations, errors, duration, API Gateway requests and latency" 
+    style="width:100%; border-radius:8px; border:1px solid #2a2d35; margin:1.25rem 0;"
+  />
 
   <h2>Step 5.4 — Security and PII audit</h2>
   <p>Before enabling GitHub Pages and making the build log fully public, every file in the repository was audited for sensitive data, credentials, and PII. The audit covered 13 categories of sensitive values across all files.</p>

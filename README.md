@@ -14,6 +14,14 @@ A fully serverless IT support ticketing system built on AWS. Employees submit ti
 
 ---
 
+## Observability
+
+![CloudWatch Dashboard](docs/CloudWatch%20Dashboard.png)
+
+Lambda invocations, error rate, duration, API Gateway request count and latency — all monitored via CloudWatch. Dashboard was built, screenshotted, then deleted to save the $3/month charge.
+
+---
+
 ## How it works
 
 1. Employee fills out the ticket form and clicks Submit
