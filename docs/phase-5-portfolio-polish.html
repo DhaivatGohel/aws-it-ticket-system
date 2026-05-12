@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Phase 5: Portfolio Polish — AWS IT Ticket Triage System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --bg: #0e0f11; --surface: #16181c; --surface2: #1e2128; --border: #2a2d35; --text: #e8e9eb; --muted: #7a7f8a; --accent: #4a9eff; --accent2: #f0c060; --green: #3ecf6e; --red: #ff6b6b; --purple: #c084fc; --code-bg: #12141a; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 17px; line-height: 1.75; min-height: 100vh; }
+  header { border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(14,15,17,0.92); backdrop-filter: blur(8px); z-index: 100; }
+  .site-name { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: 0.04em; text-decoration: none; }
+  .header-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); padding: 3px 10px; border-radius: 4px; }
+  .hero { max-width: 780px; margin: 0 auto; padding: 5rem 2rem 3rem; }
+  .phase-tag { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
+  .phase-tag::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--accent2); }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(2.2rem, 5vw, 3.2rem); line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1.5rem; color: #f0f1f3; }
+  .hero-meta { display: flex; align-items: center; gap: 1.5rem; font-size: 13px; color: var(--muted); margin-bottom: 2.5rem; flex-wrap: wrap; }
+  .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+  .hero-desc { font-size: 19px; color: #9da3b0; line-height: 1.7; border-left: 2px solid var(--accent); padding-left: 1.25rem; font-style: italic; font-family: 'Fraunces', serif; font-weight: 300; }
+  .services-strip { max-width: 780px; margin: 0 auto; padding: 0 2rem 3rem; display: flex; flex-wrap: wrap; gap: 8px; }
+  .svc-badge { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent); background: rgba(74,158,255,0.08); border: 1px solid rgba(74,158,255,0.2); padding: 4px 10px; border-radius: 4px; letter-spacing: 0.03em; }
+  .divider { max-width: 780px; margin: 0 auto; padding: 0 2rem; border-top: 1px solid var(--border); margin-bottom: 3.5rem; }
+  .body { max-width: 780px; margin: 0 auto; padding: 0 2rem 6rem; }
+  h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.65rem; color: #f0f1f3; margin: 3.5rem 0 1rem; letter-spacing: -0.01em; line-height: 1.25; }
+  h3 { font-family: 'DM Sans', sans-serif; font-weight: 500; color: var(--accent2); margin: 2.5rem 0 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; font-size: 12px; }
+  p { margin-bottom: 1.25rem; color: #9da3b0; }
+  p strong { color: var(--text); font-weight: 500; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem 1.75rem; margin: 2rem 0; }
+  .step-number { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+  .step-title { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 1.05rem; color: var(--text); margin-bottom: 1rem; }
+  .step p { margin-bottom: 0.75rem; }
+  .step p:last-child { margin-bottom: 0; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem 1.25rem; overflow-x: auto; margin: 1.25rem 0; font-size: 13.5px; }
+  code { font-family: 'IBM Plex Mono', monospace; color: #c9d1e0; font-size: 13.5px; }
+  p code, li code { background: var(--surface2); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 13px; color: #b8c5d8; }
+  .cm { color: #586069; font-style: italic; }
+  .callout { display: flex; gap: 1rem; background: rgba(74,158,255,0.06); border: 1px solid rgba(74,158,255,0.18); border-radius: 8px; padding: 1rem 1.25rem; margin: 1.5rem 0; }
+  .callout.warn { background: rgba(240,192,96,0.06); border-color: rgba(240,192,96,0.2); }
+  .callout.success { background: rgba(62,207,110,0.06); border-color: rgba(62,207,110,0.2); }
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body { font-size: 14.5px; color: #8d95a5; line-height: 1.6; }
+  .callout-body strong { color: var(--text); }
+  .callout-body p { margin-bottom: 0.4rem; color: #8d95a5; }
+  .callout-body p:last-child { margin-bottom: 0; }
+  .insight { background: var(--surface); border-top: 2px solid var(--accent2); border-radius: 0 0 8px 8px; padding: 1.25rem 1.5rem; margin: 2rem 0; }
+  .insight-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: var(--accent2); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .insight p { color: #8d95a5; font-size: 14.5px; margin-bottom: 0; }
+  .insight p strong { color: var(--text); }
+
+  /* Metrics summary */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 2rem 0; }
+  .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; text-align: center; }
+  .metric-value { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 600; color: var(--accent); line-height: 1; margin-bottom: 0.4rem; }
+  .metric-value.green { color: var(--green); }
+  .metric-value.amber { color: var(--accent2); }
+  .metric-value.purple { color: var(--purple); }
+  .metric-label { font-size: 12px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+
+  /* Security audit table */
+  .audit-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 14px; }
+  .audit-table th { text-align: left; padding: 0.6rem 1rem; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); font-weight: 500; }
+  .audit-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); color: #9da3b0; vertical-align: top; font-size: 13.5px; }
+  .audit-table tr:last-child td { border-bottom: none; }
+  .audit-table td:first-child { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text); }
+  .tag-clean { background: rgba(62,207,110,0.1); color: var(--green); border: 1px solid rgba(62,207,110,0.25); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+  .tag-redacted { background: rgba(240,192,96,0.1); color: var(--accent2); border: 1px solid rgba(240,192,96,0.25); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+
+  /* Phase summary */
+  .phase-list { display: flex; flex-direction: column; gap: 10px; margin: 1.5rem 0; }
+  .phase-item { display: flex; align-items: flex-start; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; }
+  .phase-num { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; flex-shrink: 0; margin-top: 2px; }
+  .phase-content { flex: 1; }
+  .phase-title-sm { font-weight: 500; color: var(--text); font-size: 14px; margin-bottom: 3px; }
+  .phase-desc-sm { font-size: 13px; color: var(--muted); }
+
+  /* Live links */
+  .live-row { display: flex; gap: 10px; margin: 1.5rem 0; flex-wrap: wrap; }
+  .live-badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(62,207,110,0.1); border: 1px solid rgba(62,207,110,0.25); border-radius: 20px; padding: 5px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--green); text-decoration: none; }
+  .live-badge:hover { text-decoration: none; border-color: var(--green); }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .repo-badge { display: inline-flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 5px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); text-decoration: none; }
+  .repo-badge:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
+
+  .checklist { list-style: none; margin: 1.5rem 0; display: flex; flex-direction: column; gap: 10px; }
+  .checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 14.5px; color: #8d95a5; }
+  .check { width: 18px; height: 18px; border-radius: 50%; background: rgba(62,207,110,0.15); border: 1px solid rgba(62,207,110,0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .check svg { width: 10px; height: 10px; stroke: var(--green); fill: none; stroke-width: 2.5; }
+  .next-link { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1.25rem; color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: 13px; text-decoration: none; margin-bottom: 2rem; transition: border-color 0.15s; }
+  .next-link:hover { border-color: var(--accent); text-decoration: none; }
+  ul { padding-left: 1.25rem; margin-bottom: 1.25rem; }
+  ul li { color: #9da3b0; margin-bottom: 0.4rem; font-size: 15.5px; }
+  footer { border-top: 1px solid var(--border); padding: 2.5rem 2rem; text-align: center; font-size: 13px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  @media (max-width: 600px) { header { padding: 1rem; } .hero, .body, .services-strip, .divider { padding-left: 1.25rem; padding-right: 1.25rem; } }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="site-name" href="index.html">dsgohel / aws-build-log</a>
+  <span class="header-tag">ca-central-1</span>
+</header>
+
+<div class="hero">
+  <div class="phase-tag">Phase 5</div>
+  <h1>Portfolio Polish: README, Architecture, Observability, and a Security Audit</h1>
+  <div class="hero-meta">
+    <span>Dhaivat Gohel</span>
+    <div class="dot"></div>
+    <span>April 2026</span>
+    <div class="dot"></div>
+    <span>10 min read</span>
+  </div>
+  <p class="hero-desc">The system was functionally complete after Phase 4. Phase 5 is about making it portfolio-ready — professional documentation, a full security audit, observability, and everything a hiring manager or senior engineer needs to evaluate the work.</p>
+</div>
+
+<div class="services-strip">
+  <span class="svc-badge">GitHub Pages</span>
+  <span class="svc-badge">CloudWatch</span>
+  <span class="svc-badge">IAM Audit</span>
+  <span class="svc-badge">README</span>
+  <span class="svc-badge">Architecture</span>
+  <span class="svc-badge">Security</span>
+</div>
+
+<div class="divider"></div>
+
+<div class="body">
+
+  <h2>What Phase 5 covers</h2>
+  <p>After four phases of building, the system was live and working. But a portfolio project isn't just about working code — it's about demonstrating engineering judgment across the full lifecycle: documentation, security, observability, and presentation.</p>
+
+  <p>Phase 5 added four things that separate a demo from a portfolio piece:</p>
+  <ul>
+    <li>A professional README with embedded architecture diagram</li>
+    <li>A CloudWatch observability dashboard (built, screenshotted, deleted to save cost)</li>
+    <li>A full security and PII audit before going public</li>
+    <li>GitHub Pages hosting for the build log</li>
+  </ul>
+
+  <h2>The completed system — by the numbers</h2>
+
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="metric-value">9</div>
+      <div class="metric-label">AWS services</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value green">5</div>
+      <div class="metric-label">Build phases</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value amber">18s</div>
+      <div class="metric-label">CI/CD deploy time</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value purple">~$0.50</div>
+      <div class="metric-label">Monthly cost</div>
+    </div>
+  </div>
+
+  <h2>Step 5.1 — Architecture diagram</h2>
+  <p>The architecture diagram was built as an SVG file and embedded directly in the README — no external image hosting needed, renders natively on GitHub. Every service is represented with its actual AWS name, color-coded by function, and connected with labeled arrows showing the data flow.</p>
+
+  <div class="step">
+    <div class="step-number">DECISION</div>
+    <div class="step-title">Why SVG instead of a screenshot or PNG?</div>
+    <p>SVG is vector — it scales perfectly at any resolution, renders in dark mode, and lives in the repo as code rather than a binary blob. It's also editable in any text editor. When the architecture changes, the diagram gets updated in the same commit as the code. A PNG screenshot would be stale the moment anything changed.</p>
+  </div>
+
+  <h2>Step 5.2 — Professional README</h2>
+  <p>The README is the front page of your project. When a recruiter or hiring manager clicks your GitHub link, the README is the first and sometimes only thing they read. It needs to answer five questions immediately:</p>
+  <ul>
+    <li>What does this project do?</li>
+    <li>Is it actually live and working?</li>
+    <li>What technologies does it use?</li>
+    <li>What security decisions were made?</li>
+    <li>Where can I read more?</li>
+  </ul>
+  <p>The README answers all five — with a live URL, architecture diagram, tech stack table, security decisions section, cost breakdown, and links to all five blog posts.</p>
+
+  <h2>Step 5.3 — CloudWatch dashboard</h2>
+  <p>A CloudWatch dashboard was created with 5 widgets covering the full operational picture:</p>
+  <ul>
+    <li><strong>Lambda Invocations</strong> — tickets submitted per day</li>
+    <li><strong>Lambda Errors</strong> — function failures (the one error visible is from the CORS debugging session)</li>
+    <li><strong>Lambda Duration</strong> — execution time in milliseconds, showing cold start vs warm performance</li>
+    <li><strong>API Gateway Requests</strong> — total HTTP requests across all testing and live submissions</li>
+    <li><strong>API Gateway Latency</strong> — end-to-end response time from the user's perspective</li>
+  </ul>
+
+  <div class="step">
+    <div class="step-number">DECISION</div>
+    <div class="step-title">Why build the dashboard and then delete it?</div>
+    <p>CloudWatch dashboards cost $3/month each. For a portfolio project at near-zero traffic, that's the largest single line item — more than all the application services combined. The dashboard was built, used for screenshots and documentation, then deleted. The free built-in Lambda and API Gateway metrics are still accessible in the CloudWatch console without a custom dashboard — they just can't be pinned to a single view.</p>
+    <p>This is exactly the kind of cost-aware decision a cloud engineer makes in a real job. Building something to demonstrate a capability, then removing it when the cost outweighs the value, is good engineering judgment — not cutting corners.</p>
+  </div>
+
+  <p>The dashboard showed real data from the build — the invocation spike on April 1st when the system was built and tested, settling to periodic submissions afterward. Lambda duration peaked at 383ms (cold start + DynamoDB write + SES call) and dropped to ~2ms on warm invocations.</p>
+
+  <h2>Step 5.4 — Security and PII audit</h2>
+  <p>Before enabling GitHub Pages and making the build log fully public, every file in the repository was audited for sensitive data, credentials, and PII. The audit covered 13 categories of sensitive values across all files.</p>
+
+  <table class="audit-table">
+    <thead>
+      <tr><th>File</th><th>Finding</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>infrastructure/github-actions-policy.json</td><td>AWS account ID, CloudFront distribution ID embedded in ARNs</td><td><span class="tag-redacted">Redacted</span></td></tr>
+      <tr><td>infrastructure/cloudfront-distribution.json</td><td>OAC ID</td><td><span class="tag-redacted">Redacted</span></td></tr>
+      <tr><td>infrastructure/cors-fix.json</td><td>API Gateway ID, resource ID</td><td><span class="tag-redacted">Redacted</span></td></tr>
+      <tr><td>docs/phase-3-ses-cloudwatch-billing.html</td><td>Personal email address ×3</td><td><span class="tag-redacted">Redacted</span></td></tr>
+      <tr><td>frontend/index.html</td><td>API Gateway URL</td><td><span class="tag-clean">Left as-is</span></td></tr>
+      <tr><td>frontend/dashboard.html</td><td>API Gateway URL</td><td><span class="tag-clean">Left as-is</span></td></tr>
+      <tr><td>lambda/triage_function.py</td><td>Email address, CloudFront URL</td><td><span class="tag-clean">Left as-is</span></td></tr>
+      <tr><td>All files</td><td>AKIA keys, secret keys</td><td><span class="tag-clean">None found</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="insight">
+    <div class="insight-label">Why some values were left in place</div>
+    <p>The API Gateway URL in the frontend files is a <strong>public endpoint by design</strong> — it's what browsers call when submitting tickets. Anyone visiting the site can find it in browser DevTools. Redacting it from the source code while leaving it functional would be security theater. The email address in Lambda is a configuration value, not a credential — it tells SES where to send alerts. Neither poses a real security risk.</p>
+  </div>
+
+  <h2>Step 5.5 — GitHub Pages</h2>
+  <p>GitHub Pages was enabled on the <code>/docs</code> folder of the main branch. This turns the entire docs folder into a public website automatically — no server, no hosting cost, no configuration beyond one setting in the GitHub repo.</p>
+
+  <p>The build log is now live at:</p>
+  <div class="live-row">
+    <a class="live-badge" href="https://dhaivatgohel.github.io/aws-it-ticket-system/" target="_blank">
+      <div class="live-dot"></div>
+      dhaivatgohel.github.io/aws-it-ticket-system
+    </a>
+  </div>
+
+  <p>Each blog post links to the next, and the final post links back to the index. A recruiter can start at the index and read the entire build story sequentially — or jump to any phase directly.</p>
+
+  <h2>The complete build — all five phases</h2>
+
+  <div class="phase-list">
+    <div class="phase-item">
+      <div class="phase-num">Phase 0</div>
+      <div class="phase-content">
+        <div class="phase-title-sm">Environment Setup</div>
+        <div class="phase-desc-sm">IAM user, AWS CLI, GitHub repo, project scaffolding. The foundation before touching any service.</div>
+      </div>
+    </div>
+    <div class="phase-item">
+      <div class="phase-num">Phase 1</div>
+      <div class="phase-content">
+        <div class="phase-title-sm">S3 + CloudFront</div>
+        <div class="phase-desc-sm">Private S3 bucket behind CloudFront with OAC. Live HTTPS site for effectively $0/month.</div>
+      </div>
+    </div>
+    <div class="phase-item">
+      <div class="phase-num">Phase 2</div>
+      <div class="phase-content">
+        <div class="phase-title-sm">Lambda + DynamoDB + API Gateway</div>
+        <div class="phase-desc-sm">Python triage function, serverless ticket storage, public REST API, and a full CORS debugging session.</div>
+      </div>
+    </div>
+    <div class="phase-item">
+      <div class="phase-num">Phase 3</div>
+      <div class="phase-content">
+        <div class="phase-title-sm">SES + Billing Alarm</div>
+        <div class="phase-desc-sm">Automated email alerts on every ticket, expanded keyword triage, CloudWatch billing alarm with SNS.</div>
+      </div>
+    </div>
+    <div class="phase-item">
+      <div class="phase-num">Phase 4</div>
+      <div class="phase-content">
+        <div class="phase-title-sm">GitHub Actions CI/CD</div>
+        <div class="phase-desc-sm">Least-privilege IAM user for GitHub Actions, encrypted secrets, push-to-deploy in 18 seconds.</div>
+      </div>
+    </div>
+    <div class="phase-item">
+      <div class="phase-num">Phase 5</div>
+      <div class="phase-content">
+        <div class="phase-title-sm">Portfolio Polish</div>
+        <div class="phase-desc-sm">README, architecture diagram, CloudWatch dashboard, security audit, GitHub Pages.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>What this project demonstrates</h2>
+  <p>This project was built specifically to demonstrate the skills required for a Cloud Engineer or DevOps role at a Canadian company. Here's what each part of the build proves:</p>
+
+  <ul>
+    <li><strong>Serverless architecture</strong> — Lambda, API Gateway, DynamoDB, S3, CloudFront all working together</li>
+    <li><strong>Security discipline</strong> — least-privilege IAM throughout, OAC on CloudFront, no hardcoded credentials, pre-publication security audit</li>
+    <li><strong>Canadian data residency</strong> — deliberate ca-central-1 deployment with PIPEDA rationale documented</li>
+    <li><strong>CI/CD pipeline</strong> — GitHub Actions deploying automatically on push, dedicated deployment user</li>
+    <li><strong>Operational maturity</strong> — email alerting, billing alarm, CloudWatch observability</li>
+    <li><strong>Cost awareness</strong> — PAY_PER_REQUEST DynamoDB, PriceClass_100 CloudFront, dashboard deleted after use</li>
+    <li><strong>Documentation</strong> — every decision explained, every tradeoff documented, every mistake included</li>
+    <li><strong>Git discipline</strong> — conventional commits, clean history, proper .gitignore, security fixes committed separately</li>
+  </ul>
+
+  <div class="callout success">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <p><strong>Live URLs:</strong></p>
+      <p>Ticket form: <a href="https://d23mh63awvqncl.cloudfront.net">https://d23mh63awvqncl.cloudfront.net</a></p>
+      <p>Admin dashboard: <a href="https://d23mh63awvqncl.cloudfront.net/dashboard.html">https://d23mh63awvqncl.cloudfront.net/dashboard.html</a></p>
+      <p>Build log: <a href="https://dhaivatgohel.github.io/aws-it-ticket-system/">https://dhaivatgohel.github.io/aws-it-ticket-system/</a></p>
+      <p>GitHub: <a href="https://github.com/DhaivatGohel/aws-it-ticket-system">github.com/DhaivatGohel/aws-it-ticket-system</a></p>
+    </div>
+  </div>
+
+  <h2>Phase 5 checklist</h2>
+  <ul class="checklist">
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Architecture diagram built as SVG and embedded in README</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Professional README with live URLs, tech stack, security decisions, cost breakdown</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> CloudWatch dashboard built, screenshotted, and deleted to save cost</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Full security and PII audit across all repo files — 13 categories checked</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> 4 files redacted, 3 files intentionally left with live values</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Blog index page created linking all 5 phases</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> GitHub Pages enabled — build log live at dhaivatgohel.github.io/aws-it-ticket-system</li>
+    <li><div class="check"><svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg></div> Navigation links between all blog posts verified and working</li>
+  </ul>
+
+  <a class="next-link" href="index.html">Back to build log index →</a>
+
+  <div class="callout">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <p><strong>All code is open source:</strong> <a href="https://github.com/DhaivatGohel/aws-it-ticket-system">github.com/DhaivatGohel/aws-it-ticket-system</a></p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div style="margin-bottom: 0.5rem;">Dhaivat Gohel · AWS IT Ticket Triage System Build Log</div>
+  <div>AWS Certified Cloud Practitioner · SAA candidate · Toronto, ON</div>
+</footer>
+
+</body>
+</html>
