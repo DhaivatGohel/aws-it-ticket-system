@@ -1,10 +1,15 @@
 # AWS IT Ticket Triage System
 
+![Version](https://img.shields.io/badge/version-v1.0.0-blue)
+![AWS](https://img.shields.io/badge/AWS-ca--central--1-orange)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 A fully serverless IT support ticketing system built on AWS. Employees submit tickets via a web form — the system automatically categorizes and prioritizes them using keyword analysis, stores them in DynamoDB, sends email alerts to the IT team via SES, and displays a live admin dashboard.
 
 **Live URLs:**
 - Ticket form: https://d23mh63awvqncl.cloudfront.net
 - Admin dashboard: https://d23mh63awvqncl.cloudfront.net/dashboard.html
+- Build log: https://dhaivatgohel.github.io/aws-it-ticket-system/
 
 ---
 
@@ -81,7 +86,7 @@ Exception: CloudWatch billing metrics are only available in us-east-1 (AWS limit
 - CloudFront uses Origin Access Control (OAC), not the deprecated OAI
 - Lambda execution role has exactly 4 DynamoDB actions on exactly 1 table
 - GitHub Actions uses a dedicated IAM user with 3 permissions — not AdministratorAccess
-- No credentials hardcoded anywhere — Lambda uses IAM roles, GitHub uses encrypted Secrets
+- No credentials hardcoded anywhere — Lambda uses IAM roles, GitHub uses encrypted Secrets, and a manual security audit was conducted across all source files before v1.0.0 release
 - All API Gateway permissions scoped to specific ARNs, not wildcards
 
 ---
@@ -90,6 +95,7 @@ Exception: CloudWatch billing metrics are only available in us-east-1 (AWS limit
 
 ```
 aws-it-ticket-system/
+├── .gitignore              # Excludes Lambda build artifacts
 ├── frontend/
 │   ├── index.html          # Ticket submission form
 │   └── dashboard.html      # Admin dashboard
@@ -104,8 +110,8 @@ aws-it-ticket-system/
 │   ├── index.html          # Blog index
 │   └── phase-*.html        # Phase blog posts
 └── .github/
-    └── workflows/
-        └── deploy.yml      # GitHub Actions CI/CD pipeline
+└── workflows/
+└── deploy.yml      # GitHub Actions CI/CD pipeline
 ```
 
 ---
@@ -147,6 +153,15 @@ This project was built and documented phase by phase. Each phase has a blog post
 - [Phase 2: Lambda + DynamoDB + API Gateway](docs/phase-2-lambda-dynamodb-api.html)
 - [Phase 3: SES + Billing Alarm](docs/phase-3-ses-cloudwatch-billing.html)
 - [Phase 4: GitHub Actions CI/CD](docs/phase-4-cicd-pipeline.html)
+- [Phase 5: Portfolio Polish](docs/phase-5-portfolio-polish.html)
+
+---
+
+## Release
+
+This project is tagged as **v1.0.0** — the first stable, fully documented release.
+
+[View release on GitHub](https://github.com/DhaivatGohel/aws-it-ticket-system/releases/tag/v1.0.0)
 
 ---
 
